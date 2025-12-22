@@ -1,0 +1,260 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.main {
+  padding-top: 80px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.125rem;
+  color: white;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  text-align: center;
+  color: white;
+  margin-bottom: 3rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  font-size: 1.125rem;
+  opacity: 0.9;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: #555;
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.statusItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.statusItem strong {
+  color: #374151;
+}
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.tier {
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.visibleFeature, .hiddenFeature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.visibleFeature {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.hiddenFeature {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.testControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.testButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.testButton:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.testButton.active {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.headerTest {
+  margin-top: 1rem;
+}
+
+.mockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1f2937;
+  color: white;
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.mockLogo {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.mockNav {
+  display: flex;
+  gap: 1rem;
+}
+
+.mockNavItem {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.mockActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mockUser {
+  background: rgba(59, 130, 246, 0.2);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.mockBtn {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mockBtnPrimary {
+  background: #f59e0b;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.explanation {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #0c4a6e;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .mockHeader {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .mockNav {
+    justify-content: center;
+  }
+}

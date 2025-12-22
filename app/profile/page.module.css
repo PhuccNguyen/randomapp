@@ -1,0 +1,833 @@
+/* app/profile/page.module.css */
+
+/* ============================================
+   CONTAINER & LAYOUT
+   ============================================ */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+  color: white;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  border: 2px solid;
+  animation: slideDown 0.3s ease;
+  background: white;
+}
+
+.alert.success {
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.alert.error {
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   PROFILE LAYOUT
+   ============================================ */
+.profileLayout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Sidebar */
+.sidebar {
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Profile Header Card */
+.profileHeaderCard {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatarContainer {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.avatarPlaceholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.changeAvatarButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.changeAvatarButton:hover {
+  transform: scale(1.1);
+  background: #5568d3;
+}
+
+.userInfo {
+  width: 100%;
+}
+
+.userName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.userEmail {
+  font-size: 0.95rem;
+  color: #718096;
+  margin: 0 0 1rem 0;
+  word-break: break-word;
+}
+
+.tierBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tab Navigation */
+.tabNav {
+  background: white;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #4a5568;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.tabButton:hover {
+  background: #f7fafc;
+  color: #667eea;
+  transform: translateX(4px);
+}
+
+.tabButton.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Content Area */
+.contentArea {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  min-height: 600px;
+}
+
+/* ============================================
+   SECTION STYLES
+   ============================================ */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #667eea;
+}
+
+.sectionTitle h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+/* Edit Actions */
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.editButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.editActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.saveButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #cbd5e0;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   FIELDS GRID
+   ============================================ */
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.9rem;
+}
+
+.fieldInput,
+.fieldValue {
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.fieldInput:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.fieldValue {
+  background: #f7fafc;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.fieldNote {
+  font-size: 0.8rem;
+  color: #718096;
+  font-style: italic;
+}
+
+/* ============================================
+   SECURITY SECTION
+   ============================================ */
+.securityCard {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 1.5rem 0;
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+  border-radius: 10px;
+  color: #991b1b;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.passwordFields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.passwordInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInputWrapper input {
+  flex: 1;
+  padding-right: 3rem;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #718096;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.togglePassword:hover {
+  color: #667eea;
+}
+
+.changePasswordButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.changePasswordButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.changePasswordButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.securityTips {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.securityTips h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 1rem 0;
+}
+
+.securityTips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.securityTips li {
+  font-size: 0.9rem;
+  color: #78350f;
+}
+
+/* ============================================
+   TIER SECTION
+   ============================================ */
+.currentTierCard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  color: white;
+}
+
+.currentTierHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.currentTierHeader h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.currentTierBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+}
+
+.tiersGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.tierCard {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.tierCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.tierCard.currentTier {
+  border-color: #667eea;
+  border-width: 3px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+}
+
+.tierHeader {
+  padding: 2rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tierHeader h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tierPrice {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tierFeatures {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tierFeature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #2d3748;
+}
+
+.tierFeature.unavailable span {
+  color: #9e9e9e;
+  text-decoration: line-through;
+}
+
+.upgradeTierButton {
+  width: calc(100% - 4rem);
+  margin: 0 2rem 2rem 2rem;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upgradeTierButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.currentTierLabel {
+  width: calc(100% - 4rem);
+  margin: 0 2rem 2rem 2rem;
+  padding: 0.875rem;
+  background: #d1fae5;
+  color: #065f46;
+  border: 2px solid #10b981;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ============================================
+   ACTIVITY SECTION
+   ============================================ */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.statCard {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.statCard:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.statCard h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #718096;
+  margin: 0 0 0.25rem 0;
+}
+
+.statCard p {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.recentActivity {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.recentActivity h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 1.5rem 0;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activityItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.activityItem:hover {
+  border-color: #667eea;
+  transform: translateX(4px);
+}
+
+.activityIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.activityItem p {
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 0.25rem 0;
+}
+
+.activityItem span {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1024px) {
+  .profileLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .tiersGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem 0.5rem;
+  }
+
+  .contentArea {
+    padding: 1.5rem;
+  }
+
+  .sectionTitle h2 {
+    font-size: 1.5rem;
+  }
+
+  .userName {
+    font-size: 1.25rem;
+  }
+
+  .avatar,
+  .avatarPlaceholder {
+    width: 100px;
+    height: 100px;
+  }
+
+  .tabNav {
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .tabButton {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .sectionTitle h2 {
+    font-size: 1.25rem;
+  }
+
+  .profileHeaderCard {
+    padding: 1.5rem;
+  }
+
+  .contentArea {
+    padding: 1rem;
+  }
+
+  .editActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .saveButton,
+  .cancelButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

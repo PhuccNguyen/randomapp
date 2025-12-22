@@ -1,0 +1,348 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.main {
+  padding-top: 80px;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  text-align: center;
+  color: white;
+  margin-bottom: 3rem;
+}
+
+.icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: white;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  font-size: 1.125rem;
+  opacity: 0.9;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stepNumber {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepContent h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.stepContent p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  transition: color 0.2s ease;
+}
+
+.link:hover {
+  color: #5a6fd8;
+}
+
+.substeps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.substep {
+  color: #555;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.substep code {
+  background: #f3f4f6;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.important {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  color: #92400e;
+}
+
+.important strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.copyBox {
+  background: #fefbf3;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.copyButton {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 1px solid #667eea;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 32px;
+}
+
+.copyButton:hover {
+  background: #667eea;
+  color: white;
+}
+
+.warning {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.credentialItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.credentialItem label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.placeholder {
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.envFile {
+  background: #1f2937;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.envHeader {
+  background: #374151;
+  color: white;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.envContent {
+  background: #1f2937;
+  color: #e5e7eb;
+  padding: 1rem;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.command {
+  background: #1f2937;
+  color: #e5e7eb;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Courier New', monospace;
+  margin-top: 1rem;
+}
+
+.testSection {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.testSection h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.testSection p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.testLinks {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.testButton {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.testButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.statusSection {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.statusSection h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.statusGrid {
+  display: flex;
+  gap: 1rem;
+}
+
+.statusItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  flex: 1;
+}
+
+.statusEnabled {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .step {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .testLinks {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .statusGrid {
+    flex-direction: column;
+  }
+}
