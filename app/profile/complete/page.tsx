@@ -72,18 +72,8 @@ export default function ProfilePage() {
 
       setSuccess('Profile đã được cập nhật thành công!');
       setTimeout(() => {
-        // Redirect to appropriate wheel page based on user tier
-        const userTier = data.user?.tier || 'PERSONAL';
-        switch (userTier) {
-          case 'ENTERPRISE':
-            router.push('/wheel/enterprise');
-            break;
-          case 'BUSINESS':
-            router.push('/wheel/business');
-            break;
-          default:
-            router.push('/wheel/personal');
-        }
+        // Redirect to home page
+        router.push('/');
       }, 1500);
 
     } catch (error: any) {

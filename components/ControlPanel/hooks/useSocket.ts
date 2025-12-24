@@ -15,6 +15,8 @@ export const useSocket = (campaignId: string) => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
+    console.log('🔧 Control Panel: Initializing socket for campaign:', campaignId);
+    
     // ✅ Connect to custom server with Socket.IO
     const socketInstance = io('http://localhost:3000', {
       path: '/socket.io', // ✅ Standard Socket.IO path
@@ -25,10 +27,11 @@ export const useSocket = (campaignId: string) => {
     });
 
     socketInstance.on('connect', () => {
-      console.log('✅ Socket connected:', socketInstance.id);
+      console.log('✅ Control Panel: Socket connected:', socketInstance.id);
       setConnected(true);
       
       // Join campaign room
+      console.log('📌 Control Panel: Joining room:', campaignId);
       socketInstance.emit('join', campaignId);
     });
 
@@ -61,22 +64,24 @@ export const useSocket = (campaignId: string) => {
 
   const triggerSpin = useCallback(() => {
     if (!socketRef.current?.connected) {
-      console.warn('⚠️ Socket not connected');
+      console.warn('⚠️ Control Panel: Socket not connected, cannot spin');
       return;
     }
     
-    console.log('🔄 Triggering spin for campaign:', campaignId);
+    console.log('🔄 Control Panel: Triggering spin for campaign:', campaignId);
     socketRef.current.emit('trigger:spin', campaignId);
+    console.log('✅ Control Panel: Spin event emitted');
   }, [campaignId]);
 
   const triggerStop = useCallback(() => {
     if (!socketRef.current?.connected) {
-      console.warn('⚠️ Socket not connected');
+      console.warn('⚠️ Control Panel: Socket not connected, cannot stop');
       return;
     }
     
-    console.log('⏹️ Triggering stop for campaign:', campaignId);
+    console.log('⏹️ Control Panel: Triggering stop for campaign:', campaignId);
     socketRef.current.emit('trigger:stop', campaignId);
+    console.log('✅ Control Panel: Stop event emitted');
   }, [campaignId]);
 
   const triggerNext = useCallback(() => {

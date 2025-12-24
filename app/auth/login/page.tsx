@@ -46,25 +46,15 @@ export default function LoginPage() {
         // Trigger custom event to update other components
         window.dispatchEvent(new Event('userChanged'));
         
-        // Check if there's a return URL, otherwise redirect to appropriate wheel page
+        // Check if there's a return URL, otherwise redirect to home page
         const urlParams = new URLSearchParams(window.location.search);
         const returnTo = urlParams.get('returnTo');
         
         if (returnTo) {
           router.push(returnTo);
         } else {
-          // Redirect to wheel page based on user tier
-          const userTier = data.user.tier || 'PERSONAL';
-          switch (userTier) {
-            case 'ENTERPRISE':
-              router.push('/wheel/enterprise');
-              break;
-            case 'BUSINESS':
-              router.push('/wheel/business');
-              break;
-            default:
-              router.push('/wheel/personal');
-          }
+          // Redirect to home page
+          router.push('/');
         }
       } else {
         setError(data.error || 'Đã xảy ra lỗi');
@@ -88,7 +78,7 @@ export default function LoginPage() {
     try {
       // Check for return URL
       const urlParams = new URLSearchParams(window.location.search);
-      const returnTo = urlParams.get('returnTo') || '/wheel/personal';
+      const returnTo = urlParams.get('returnTo') || '/';
       
       const result = await signIn('google', {
         callbackUrl: returnTo

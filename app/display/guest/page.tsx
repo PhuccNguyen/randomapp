@@ -1,243 +1,450 @@
-// app/display/guest/page.tsx
+// C:\Users\Nguyen Phuc\Web\tingrandom\app\display\guest\page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2, Search } from 'lucide-react';
+import React, { useState, useEffect, Suspense, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
+import { Tv, Wifi, WifiOff, Loader2, AlertCircle, Trophy, Users, Crown, Play, CheckCircle, Award } from 'lucide-react';
 import Wheel from '@/components/Wheel/Wheel';
-import Reel from '@/components/Reel/Reel';
 import styles from './page.module.css';
-import type { JudgeItem } from '@/lib/types';
+
+interface WheelItem {
+  id: string;
+  name: string;
+  color: string;
+  probability?: number;
+}
 
 interface Campaign {
   _id: string;
   name: string;
-  mode: string;
-  items: JudgeItem[];
+  description?: string;
+  items: WheelItem[];
+  settings: {
+    spinDuration?: number;
+    spinSound?: boolean;
+    confetti?: boolean;
+    theme?: string;
+  };
 }
 
-interface ControlState {
-  status: 'idle' | 'spinning' | 'stopped' | 'completed';
-  currentStep: number;
-  targetId?: string;
+interface Winner {
+  id: string;
+  name: string;
+  color: string;
+  timestamp: number;
+}
+
+function GuestDisplayContent() {
+  const searchParams = useSearchParams();
+  const campaignId = searchParams.get('id');
+  const campaignCode = searchParams.get('code');
+
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [connected, setConnected] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [targetId, setTargetId] = useState<string | null>(null);
+  const [winner, setWinner] = useState<Winner | null>(null);
+  const [showWinner, setShowWinner] = useState(false);
+  const [history, setHistory] = useState<Winner[]>([]);
+  const [spinCount, setSpinCount] = useState(0);
+  const confettiRef = useRef<HTMLDivElement>(null);
+
+  // Fetch campaign data
+  useEffect(() => {
+    const fetchCampaign = async () => {
+      if (!campaignId && !campaignCode) {
+        setError('Thiếu thông tin chiến dịch (id hoặc code)');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        let url = '/api/campaigns';
+        if (campaignId) {
+          url += `/${campaignId}`;
+        } else if (campaignCode) {
+          url += `?code=${campaignCode}`;
+        }
+
+        const token = localStorage.getItem('token');
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(url, { headers });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Không thể tải thông tin chiến dịch');
+        }
+
+        const campaignData = data.campaign || data;
+        console.log('✅ Campaign loaded:', campaignData.name);
+        setCampaign(campaignData);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCampaign();
+  }, [campaignId, campaignCode]);
+
+  // Socket.IO connection
+  useEffect(() => {
+    const socketCampaignId = campaignId || campaign?._id;
+    
+    if (!socketCampaignId) return;
+
+    const newSocket = io('http://localhost:3000', {
+      path: '/socket.io',
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 10,
+      timeout: 10000
+    });
+
+    newSocket.on('connect', () => {
+      console.log('✅ Socket connected:', newSocket.id);
+      setConnected(true);
+      newSocket.emit('join', socketCampaignId);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('❌ Socket disconnected:', reason);
+      setConnected(false);
+    });
+
+    newSocket.on('state:update', (data: any) => {
+      console.log('📡 State update:', data);
+      
+      if (data.status === 'spinning') {
+        setSpinning(true);
+        setStopping(false);
+        setShowWinner(false);
+        setWinner(null);
+        setTargetId(data.targetId || null);
+        setSpinCount(prev => prev + 1);
+      } else if (data.status === 'stopped') {
+        setStopping(true);
+        setSpinning(false);
+      } else if (data.status === 'idle') {
+        setSpinning(false);
+        setStopping(false);
+        setTargetId(null);
+      }
+      
+      if (data.targetId) {
+        setTargetId(data.targetId);
+      }
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [campaignId, campaign?._id]);
+
+  // Handle spin complete
+  const handleSpinComplete = useCallback((result: WheelItem) => {
+    console.log('🎉 Winner:', result.name);
+    
+    const newWinner: Winner = {
+      id: result.id,
+      name: result.name,
+      color: result.color,
+      timestamp: Date.now()
+    };
+    
+    setWinner(newWinner);
+    setHistory(prev => [newWinner, ...prev].slice(0, 10));
+    
+    // Show winner animation
+    setTimeout(() => {
+      setShowWinner(true);
+      triggerConfetti();
+      playWinnerSound();
+    }, 500);
+  }, []);
+
+  // Confetti effect
+  const triggerConfetti = () => {
+    if (!confettiRef.current) return;
+    
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'];
+    
+    for (let i = 0; i < 100; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = styles.confetti;
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDelay = Math.random() * 0.5 + 's';
+      confetti.style.animationDuration = Math.random() * 2 + 3 + 's';
+      confettiRef.current.appendChild(confetti);
+      
+      setTimeout(() => confetti.remove(), 5000);
+    }
+  };
+
+  // Winner sound
+  const playWinnerSound = () => {
+    if (campaign?.settings?.spinSound) {
+      const audio = new Audio('/sounds/winner.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(err => console.log('Sound play failed:', err));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingState}>
+          <div className={styles.loadingSpinner}>
+            <Loader2 className={styles.spinner} />
+            <div className={styles.loadingPulse}></div>
+          </div>
+          <h2 className={styles.loadingTitle}>Đang tải chương trình</h2>
+          <p className={styles.loadingText}>Vui lòng chờ trong giây lát...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !campaign) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.errorState}>
+          <div className={styles.errorIcon}>
+            <AlertCircle size={80} />
+          </div>
+          <h2 className={styles.errorTitle}>Không thể tải chương trình</h2>
+          <p className={styles.errorText}>{error || 'Chiến dịch không tồn tại hoặc đã bị xóa'}</p>
+          <button onClick={() => window.location.href = '/display'} className={styles.backButton}>
+            <span>←</span> Quay lại trang chủ
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.container}>
+      {/* Animated Background */}
+      <div className={styles.animatedBackground}>
+        <div className={styles.gradientOrb} style={{ top: '10%', left: '20%' }}></div>
+        <div className={styles.gradientOrb} style={{ top: '60%', right: '15%' }}></div>
+        <div className={styles.gradientOrb} style={{ bottom: '15%', left: '30%' }}></div>
+      </div>
+
+      {/* Confetti Container */}
+      <div ref={confettiRef} className={styles.confettiContainer}></div>
+
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLeft}>
+            <div className={styles.logoIcon}>
+              <Trophy className={styles.logoIconSvg} />
+              <div className={styles.logoGlow}></div>
+            </div>
+            <div className={styles.headerInfo}>
+              <h1 className={styles.headerTitle}>
+                {campaign.name}
+              </h1>
+              {campaign.description && (
+                <p className={styles.headerSubtitle}>{campaign.description}</p>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.headerRight}>
+            <div className={styles.participantsBadge}>
+              <Users size={18} />
+              <span>{campaign.items.length}</span>
+            </div>
+            <div className={`${styles.liveBadge} ${connected ? styles.liveActive : styles.liveInactive}`}>
+              <span className={styles.liveDot}></span>
+              <span className={styles.liveText}>
+                {connected ? 'TRỰC TIẾP' : 'MẤT KẾT NỐI'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className={styles.mainContent}>
+        {/* Left Sidebar - History */}
+        <aside className={styles.sidebar}>
+          <div className={styles.sidebarHeader}>
+            <Crown size={20} />
+            <h3>Lịch Sử Quay</h3>
+          </div>
+          
+          {history.length === 0 ? (
+            <div className={styles.sidebarEmpty}>
+              <Trophy size={48} className={styles.emptyIcon} />
+              <p>Chưa có kết quả</p>
+            </div>
+          ) : (
+            <div className={styles.historyList}>
+              {history.map((item, index) => (
+                <div key={item.timestamp} className={styles.historyItem}>
+                  <div className={styles.historyRank}>#{index + 1}</div>
+                  <div 
+                    className={styles.historyColor}
+                    style={{ backgroundColor: item.color }}
+                  ></div>
+                  <div className={styles.historyInfo}>
+                    <div className={styles.historyName}>{item.name}</div>
+                    <div className={styles.historyTime}>
+                      {new Date(item.timestamp).toLocaleTimeString('vi-VN')}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </aside>
+
+        {/* Center - Wheel */}
+        <main className={styles.wheelSection}>
+          <div className={styles.wheelWrapper}>
+            {/* Decorative Elements */}
+            <div className={styles.wheelDecor}>
+              <div className={styles.wheelRing}></div>
+              <div className={styles.wheelGlow}></div>
+            </div>
+
+            {/* Wheel Component */}
+            <Wheel
+              items={campaign.items}
+              isSpinning={spinning}
+              isStopping={stopping}
+              targetId={targetId || undefined}
+              onSpinComplete={handleSpinComplete}
+            />
+
+            {/* Spin Counter */}
+            {spinCount > 0 && (
+              <div className={styles.spinCounter}>
+                <Play size={16} />
+                <span>Lượt {spinCount}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Status Message */}
+          <div className={styles.statusMessage}>
+            {spinning && (
+              <div className={styles.statusSpinning}>
+                <div className={styles.statusDots}>
+                  <span></span><span></span><span></span>
+                </div>
+                <p>Đang quay số...</p>
+              </div>
+            )}
+            {!spinning && !showWinner && (
+              <div className={styles.statusIdle}>
+                <Trophy size={24} />
+                <p>Chờ ban tổ chức bắt đầu</p>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* Right Sidebar - Participants */}
+        <aside className={styles.sidebarRight}>
+          <div className={styles.sidebarHeader}>
+            <Users size={20} />
+            <h3>Danh Sách Tham Gia</h3>
+          </div>
+          
+          <div className={styles.participantsList}>
+            {campaign.items.map((item, index) => (
+              <div 
+                key={item.id} 
+                className={`${styles.participantItem} ${targetId === item.id ? styles.participantHighlight : ''}`}
+              >
+                <div 
+                  className={styles.participantColor}
+                  style={{ backgroundColor: item.color }}
+                ></div>
+                <span className={styles.participantName}>{item.name}</span>
+                {targetId === item.id && (
+                  <span className={styles.participantBadge}>🎯</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
+
+      {/* Winner Modal */}
+      {showWinner && winner && (
+        <div className={styles.winnerModal}>
+          <div className={styles.winnerOverlay} onClick={() => setShowWinner(false)}></div>
+          <div className={styles.winnerContent}>
+            <div className={styles.winnerIcon}>
+              <Crown size={80} />
+              <div className={styles.winnerGlow}></div>
+            </div>
+            <h2 className={styles.winnerTitle}>Chúc Mừng!</h2>
+            <div 
+              className={styles.winnerName}
+              style={{ color: winner.color }}
+            >
+              {winner.name}
+            </div>
+            <p className={styles.winnerSubtext}>đã trúng thưởng!</p>
+            <button 
+              className={styles.winnerCloseButton}
+              onClick={() => setShowWinner(false)}
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <div className={styles.footerLeft}>
+            <Award size={20} />
+            <span>Vòng quay may mắn - Chúc bạn thành công!</span>
+          </div>
+          <div className={styles.footerRight}>
+            <span className={styles.footerBadge}>
+              Powered by Trustlabs
+            </span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }
 
 export default function GuestDisplayPage() {
-  const router = useRouter();
-  const [campaignId, setCampaignId] = useState('');
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [controlState, setControlState] = useState<ControlState>({
-    status: 'idle',
-    currentStep: 0
-  });
-  const [isViewing, setIsViewing] = useState(false);
-
-  // Fetch campaign data
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!campaignId.trim()) {
-      setError('Vui lòng nhập ID chiến dịch');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch(`/api/campaigns/${campaignId}`);
-      const data = await res.json();
-
-      if (data.success && data.campaign) {
-        setCampaign(data.campaign);
-        setIsViewing(true);
-      } else {
-        setError('Không tìm thấy chiến dịch. Vui lòng kiểm tra lại ID.');
-        setCampaign(null);
-      }
-    } catch (err) {
-      console.error('Error fetching campaign:', err);
-      setError('Có lỗi xảy ra khi tải chiến dịch. Vui lòng thử lại.');
-      setCampaign(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Setup Socket.IO connection when viewing campaign
-  useEffect(() => {
-    if (!isViewing || !campaignId) return;
-
-    const socketInstance = io('http://localhost:3000', {
-      transports: ['websocket', 'polling']
-    });
-
-    socketInstance.on('connect', () => {
-      console.log('✅ Guest display socket connected');
-      socketInstance.emit('join', campaignId);
-    });
-
-    socketInstance.on('state:update', (newState: Partial<ControlState>) => {
-      console.log('📡 Guest display received state update:', newState);
-      setControlState(prev => ({ ...prev, ...newState }));
-    });
-
-    socketInstance.on('disconnect', () => {
-      console.log('❌ Guest display socket disconnected');
-    });
-
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [isViewing, campaignId]);
-
-  // Reset to search form
-  const handleBackToSearch = () => {
-    setIsViewing(false);
-    setCampaign(null);
-    setCampaignId('');
-    setError('');
-    if (socket) {
-      socket.disconnect();
-    }
-  };
-
-  // Show search form
-  if (!isViewing) {
-    return (
+  return (
+    <Suspense fallback={
       <div className={styles.container}>
-        <div className={styles.searchWrapper}>
-          <div className={styles.searchCard}>
-            <div className={styles.header}>
-              <h1 className={styles.title}>🎯 Xem Sự Kiện Trực Tiếp</h1>
-              <p className={styles.subtitle}>
-                Nhập ID chiến dịch để xem quay số trực tiếp
-              </p>
-            </div>
-
-            <form onSubmit={handleSearch} className={styles.searchForm}>
-              <div className={styles.inputGroup}>
-                <Search size={20} className={styles.searchIcon} />
-                <input
-                  type="text"
-                  value={campaignId}
-                  onChange={(e) => setCampaignId(e.target.value)}
-                  placeholder="Nhập ID chiến dịch (ví dụ: 678777a6e4c3b2a1d0f9e8d7)"
-                  className={styles.input}
-                  disabled={loading}
-                />
-              </div>
-
-              {error && (
-                <div className={styles.errorMessage}>
-                  ❌ {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className={styles.searchButton}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={20} className={styles.spinner} />
-                    Đang tìm...
-                  </>
-                ) : (
-                  <>
-                    <Search size={20} />
-                    Xem trực tiếp
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className={styles.info}>
-              <h3>💡 Hướng dẫn</h3>
-              <ul>
-                <li>Nhập ID chiến dịch mà bạn nhận được từ người tổ chức</li>
-                <li>Nhấn "Xem trực tiếp" để theo dõi sự kiện</li>
-                <li>Bạn có thể xem vòng quay hoặc reel quay số trực tiếp</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.footer}>
-          <div className={styles.footerLogos}>
-            <img src="/images/logo/tingnect-logo.png" alt="Tingnect" className={styles.footerLogo} />
-            <span className={styles.footerSeparator}>×</span>
-            <img src="/images/logo/trustlabs-logos.png" alt="TrustLabs" className={styles.footerLogo} />
-          </div>
-          <p className={styles.footerText}>Vòng Quay (Tingrandom) - Hệ Sinh Thái Của TINGNECT</p>
-          <p className={styles.footerSubtext}>Phát Triển Bởi TRUSTLABS</p>
+        <div className={styles.loadingState}>
+          <Loader2 className={styles.spinner} />
+          <p>Đang tải...</p>
         </div>
       </div>
-    );
-  }
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className={styles.loading}>
-        <Loader2 size={48} className={styles.spinner} />
-        <p>Đang tải chiến dịch...</p>
-      </div>
-    );
-  }
-
-  // Show campaign display
-  if (campaign) {
-    const ComponentToRender = campaign.mode === 'reel' ? Reel : Wheel;
-
-    return (
-      <div className={styles.container}>
-        <div className={styles.displayHeader}>
-          <button onClick={handleBackToSearch} className={styles.backButton}>
-            ← Quay lại
-          </button>
-          <h1 className={styles.campaignTitle}>{campaign.name}</h1>
-          <div className={styles.badges}>
-            <div className={styles.modeBadge}>
-              {campaign.mode === 'wheel' ? '🎯 Vòng Tròn' : '🎰 Trục Ngang'}
-            </div>
-            <div className={`${styles.statusBadge} ${styles[controlState.status]}`}>
-              {controlState.status === 'idle' && '⏸️ Chờ'}
-              {controlState.status === 'spinning' && '🔄 Đang quay'}
-              {controlState.status === 'stopped' && '✅ Đã dừng'}
-              {controlState.status === 'completed' && '🏁 Hoàn thành'}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.displayArea}>
-          <ComponentToRender
-            items={campaign.items}
-            campaignId={campaignId}
-            isSpinning={controlState.status === 'spinning'}
-            targetId={controlState.targetId}
-          />
-        </div>
-
-        <div className={styles.footer}>
-          <div className={styles.footerLogos}>
-            <img src="/images/logo/tingnect-logo.png" alt="Tingnect" className={styles.footerLogo} />
-            <span className={styles.footerSeparator}>×</span>
-            <img src="/images/logo/trustlabs-logos.png" alt="TrustLabs" className={styles.footerLogo} />
-          </div>
-          <p className={styles.footerText}>Vòng Quay (Tingrandom) - Hệ Sinh Thái Của TINGNECT</p>
-          <p className={styles.footerSubtext}>Phát Triển Bởi TRUSTLABS</p>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+    }>
+      <GuestDisplayContent />
+    </Suspense>
+  );
 }

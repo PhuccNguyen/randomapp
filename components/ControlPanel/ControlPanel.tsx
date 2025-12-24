@@ -67,7 +67,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <p className={styles.subtitle}>Campaign ID: {campaignId}</p>
         </div>
         <button
-          onClick={() => window.open(`/display?id=${campaignId}`, '_blank')}
+          onClick={() => window.open(`/display/guest?id=${campaignId}`, '_blank')}
           className={styles.displayButton}
         >
           📺 Xem màn hình

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
+import AuthService from '@/lib/auth';
+import User from '@/models/User';
 import { isValidObjectId } from 'mongoose';
 
 export async function GET(
@@ -18,7 +20,7 @@ export async function GET(
       );
     }
     
-    const campaign = await Campaign.findById(id);
+    const campaign = await Campaign.findById(id).populate('owner', 'name email tier');
     
     if (!campaign) {
       return NextResponse.json(
@@ -26,11 +28,47 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    // ✅ AUTHORIZATION CHECK
+    const token = AuthService.extractTokenFromRequest(request);
     
-    return NextResponse.json({
-      success: true,
-      campaign
-    });
+    // Public campaigns - anyone can view
+    if (campaign.isPublic) {
+      return NextResponse.json({
+        success: true,
+        campaign
+      });
+    }
+
+    // Private campaigns - only owner can view
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required to view private campaign' },
+        { status: 401 }
+      );
+    }
+
+    try {
+      const payload = AuthService.verifyToken(token);
+      
+      // Check if user is the owner
+      if (campaign.owner._id.toString() !== payload.userId) {
+        return NextResponse.json(
+          { error: 'You do not have permission to view this campaign' },
+          { status: 403 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        campaign
+      });
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid authentication token' },
+        { status: 401 }
+      );
+    }
   } catch (error) {
     console.error('Error fetching campaign:', error);
     return NextResponse.json(
@@ -54,13 +92,27 @@ export async function PUT(
         { status: 400 }
       );
     }
-    
-    const body = await request.json();
-    const campaign = await Campaign.findByIdAndUpdate(
-      id,
-      { ...body, updatedAt: new Date() },
-      { new: true }
-    );
+
+    // ✅ AUTHENTICATION REQUIRED
+    const token = AuthService.extractTokenFromRequest(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    let payload;
+    try {
+      payload = AuthService.verifyToken(token);
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const campaign = await Campaign.findById(id);
     
     if (!campaign) {
       return NextResponse.json(
@@ -68,10 +120,25 @@ export async function PUT(
         { status: 404 }
       );
     }
+
+    // ✅ AUTHORIZATION CHECK - Only owner can update
+    if (campaign.owner.toString() !== payload.userId) {
+      return NextResponse.json(
+        { error: 'You do not have permission to update this campaign' },
+        { status: 403 }
+      );
+    }
+    
+    const body = await request.json();
+    const updatedCampaign = await Campaign.findByIdAndUpdate(
+      id,
+      { ...body, updatedAt: new Date() },
+      { new: true }
+    );
     
     return NextResponse.json({
       success: true,
-      campaign
+      campaign: updatedCampaign
     });
   } catch (error) {
     console.error('Error updating campaign:', error);
@@ -96,8 +163,27 @@ export async function DELETE(
         { status: 400 }
       );
     }
-    
-    const campaign = await Campaign.findByIdAndDelete(id);
+
+    // ✅ AUTHENTICATION REQUIRED
+    const token = AuthService.extractTokenFromRequest(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    let payload;
+    try {
+      payload = AuthService.verifyToken(token);
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const campaign = await Campaign.findById(id);
     
     if (!campaign) {
       return NextResponse.json(
@@ -105,6 +191,21 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    // ✅ AUTHORIZATION CHECK - Only owner can delete
+    if (campaign.owner.toString() !== payload.userId) {
+      return NextResponse.json(
+        { error: 'You do not have permission to delete this campaign' },
+        { status: 403 }
+      );
+    }
+
+    await Campaign.findByIdAndDelete(id);
+    
+    // Update user's campaign count
+    await User.findByIdAndUpdate(payload.userId, {
+      $inc: { campaignsCount: -1 }
+    });
     
     return NextResponse.json({
       success: true,
