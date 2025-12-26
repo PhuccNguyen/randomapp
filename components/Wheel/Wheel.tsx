@@ -9,6 +9,8 @@ interface JudgeItem {
   name: string;
   color?: string;
   imageUrl?: string;
+  contestant?: string;  // ✅ Added: Thí sinh
+  question?: string;    // ✅ Added: Câu hỏi
 }
 
 interface WheelProps {
@@ -46,13 +48,7 @@ const Wheel: React.FC<WheelProps> = ({
     }
   }, [isSpinning]);
 
-  // Stop spinning
-  useEffect(() => {
-    if (isStopping && spinning) {
-      console.log('🛑 Wheel: Stopping spin with target:', targetId);
-      stopSpin();
-    }
-  }, [isStopping, targetId]);
+  const stopRequestedRef = useRef(false);
 
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
@@ -157,81 +153,84 @@ const Wheel: React.FC<WheelProps> = ({
     animationRef.current = requestAnimationFrame(animate);
   }, [rotation]);
 
-const stopSpin = useCallback(() => {
-  // Cancel animation
-  if (animationRef.current) {
-    cancelAnimationFrame(animationRef.current);
-    animationRef.current = null;
-  }
-  
-  let targetIndex = Math.floor(Math.random() * items.length);
-  
-  // Find target item if specified
-  if (targetId) {
-    const foundIndex = items.findIndex(item => item.id === targetId);
-    if (foundIndex !== -1) {
-      targetIndex = foundIndex;
-      console.log('🎯 Wheel: Target found at index:', targetIndex, '- Name:', items[targetIndex].name);
+  const stopSpin = useCallback((targetIdOverride?: string) => {
+    // Cancel animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
     }
-  }
-  
-  // CRITICAL FIX: Calculate angle correctly for pointer at top
-  const anglePerSegment = 360 / items.length;
-  
-  // The pointer is at top (12 o'clock position)
-  // When drawing, we start at -90° (top), so segment 0 is from -90° to -90° + anglePerSegment
-  // To make segment land at pointer (top), we need the CENTER of that segment to be at top
-  
-  // Current rotation normalized to 0-360
-  const currentNormalized = rotation % 360;
-  
-  // Calculate the angle where the CENTER of target segment should be
-  // Segments are drawn starting from -90° (top), going clockwise
-  // Segment 0 center is at: -90° + anglePerSegment/2 = -90° + anglePerSegment/2
-  // But we need to convert this to positive rotation and invert direction
-  
-  // Since wheel rotates clockwise but we want to land at pointer (top = 0° or 360°)
-  // Target segment center should align with 90° (pointer position after rotation correction)
-  const segmentCenterOffset = anglePerSegment / 2;
-  
-  // The angle we need to rotate TO (in our rotation coordinate system)
-  // Invert the index because wheel spins opposite direction
-  const targetAngle = 360 - (targetIndex * anglePerSegment + segmentCenterOffset);
-  
-  // Calculate rotation needed from current position
-  let rotationNeeded = targetAngle - currentNormalized;
-  
-  // Normalize to positive rotation
-  while (rotationNeeded < 0) {
-    rotationNeeded += 360;
-  }
-  
-  // Add extra spins for effect (at least 5 full rotations)
-  const extraSpins = 5;
-  const finalRotation = rotation + rotationNeeded + (extraSpins * 360);
 
-  console.log('🎯 Wheel Stop Calculation:', {
-    targetIndex,
-    targetName: items[targetIndex].name,
-    anglePerSegment,
-    currentNormalized: currentNormalized.toFixed(2),
-    targetAngle: targetAngle.toFixed(2),
-    rotationNeeded: rotationNeeded.toFixed(2),
-    finalRotation: finalRotation.toFixed(2),
-    willLandAt: (finalRotation % 360).toFixed(2)
-  });
+    const resolvedTargetId = targetIdOverride || targetId;
+    console.log('🛑 Wheel stopSpin called with:', { targetId: resolvedTargetId, itemsLength: items.length });
+    console.log('🛑 Wheel: Items array:', items.map((i, idx) => ({ idx, id: i.id, name: i.name })));
 
-  setRotation(finalRotation);
+    // ✅ CRITICAL: Lấy target từ ID, không phải index!
+    // Vì items array có thể có thứ tự khác nhau ở khác nơi
+    let targetIndex = -1;
+    let targetItem: JudgeItem | undefined;
 
-  // Call onSpinComplete after animation
-  setTimeout(() => {
-    setSpinning(false);
-    if (onSpinComplete) {
-      onSpinComplete(items[targetIndex]);
+    if (resolvedTargetId) {
+      targetItem = items.find(item => item.id === resolvedTargetId);
+      if (targetItem) {
+        targetIndex = items.indexOf(targetItem);
+      } else {
+        console.warn('⚠️ Wheel: Target ID not found:', resolvedTargetId);
+      }
     }
-    console.log('✅ Wheel: Spin complete - Winner:', items[targetIndex].name);
-  }, 5000); // 5s for deceleration animation
-}, [rotation, items, targetId, onSpinComplete]);
+
+    if (targetIndex === -1) {
+      console.warn('⚠️ Wheel: Falling back to random target');
+      targetIndex = Math.floor(Math.random() * items.length);
+      targetItem = items[targetIndex];
+    }
+
+    // ✅ CALCULATE ANGLE: Dùng targetIndex để tính angle
+    const anglePerSegment = 360 / items.length;
+
+    const extraSpins = 4;
+    const normalizedRotation = ((rotation % 360) + 360) % 360;
+    const stopAngleBase = 360 - (targetIndex * anglePerSegment) - (anglePerSegment / 2);
+    const targetStopAngle = ((stopAngleBase % 360) + 360) % 360;
+    const baseRotation = rotation + (360 - normalizedRotation);
+    const finalRotation = baseRotation + (extraSpins * 360) + targetStopAngle;
+
+    console.log('🎯 Wheel Stop:', {
+      targetId: resolvedTargetId,
+      targetIndex,
+      targetName: items[targetIndex]?.name,
+      targetStopAngle: targetStopAngle.toFixed(2),
+      finalRotation: finalRotation.toFixed(2)
+    });
+
+    setRotation(finalRotation);
+
+    // Call onSpinComplete after animation finishes
+    setTimeout(() => {
+      setSpinning(false);
+      if (onSpinComplete && targetItem) {
+        console.log('✅ Wheel: Spin complete - Winner:', targetItem.name, 'ID:', targetItem.id);
+        onSpinComplete(targetItem); // Gửi item chính xác (từ targetId)
+      }
+    }, 5000);
+  }, [rotation, items, targetId, onSpinComplete]);
+
+  useEffect(() => {
+    if (isStopping && spinning && !stopRequestedRef.current) {
+      if (!targetId) {
+        console.warn('⚠️ Wheel: Stopping requested but targetId missing, waiting for server payload...');
+        return;
+      }
+
+      stopRequestedRef.current = true;
+      stopSpin(targetId);
+    }
+  }, [isStopping, spinning, targetId, stopSpin]);
+
+  useEffect(() => {
+    if (!spinning) {
+      stopRequestedRef.current = false;
+    }
+  }, [spinning]);
 
   // Cleanup on unmount
   useEffect(() => {

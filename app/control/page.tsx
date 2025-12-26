@@ -23,6 +23,8 @@ function ControlContent() {
   const campaignId = searchParams.get('id');
   
   // State Management
+  const [user, setUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [campaign, setCampaign] = useState<any>(null); // Detail campaign
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]); // List
   const [loading, setLoading] = useState(true);
@@ -30,6 +32,38 @@ function ControlContent() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // --- 2. DATA FETCHING (Automation Logic) ---
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setUser(null);
+          setCheckingAuth(false);
+          return;
+        }
+
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        setUser(null);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -85,6 +119,63 @@ function ControlContent() {
   };
 
   // --- 4. RENDER STATES ---
+
+  // State: Checking Authentication
+  if (checkingAuth) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 size={48} className="text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-medium">Đang kiểm tra xác thực...</p>
+      </div>
+    );
+  }
+
+  // State: Not Authenticated
+  if (!user) {
+    return (
+      <div className="min-h-[70vh] bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-lg">
+          {/* Animated Icon */}
+          <div className="mb-6 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20 blur-xl animate-pulse"></div>
+            <Monitor size={80} className="text-blue-600 mx-auto relative z-10" />
+          </div>
+          
+          {/* Heading */}
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">
+            🔐 Đăng Nhập Bắt Buộc
+          </h2>
+          
+          {/* Description */}
+          <p className="text-gray-600 text-lg mb-2">Truy cập Control Panel để điều khiển sự kiện</p>
+          <p className="text-gray-500 text-base mb-8">Quản lý chiến dịch, kịch bản và phát sóng trực tiếp</p>
+          
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={() => router.push('/auth/login')}
+              className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold text-lg shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 active:scale-95"
+            >
+              🔑 Đăng Nhập Ngay
+            </button>
+            <button 
+              onClick={() => router.push('/auth/register')}
+              className="px-8 py-3.5 bg-white text-blue-600 border-2 border-blue-600 rounded-lg font-bold text-lg shadow-md hover:shadow-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 active:scale-95"
+            >
+              📝 Tạo Tài Khoản
+            </button>
+          </div>
+          
+          {/* Footer Info */}
+          <div className="mt-10 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-gray-700">
+              ✨ Tính năng: Quản lý chiến dịch, Điều khiển wheel, Xem thống kê thực tế
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // State: Loading
   if (loading) {

@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { ControlState, HistoryItem, DirectorScript } from '../types';
+import { ControlState, HistoryItem, DirectorScript, JudgeItem } from '../types';
 
 interface UseSocketReturn {
   connected: boolean;
@@ -18,7 +18,7 @@ interface UseSocketReturn {
   setStep: (stepIndex: number) => void;
 }
 
-export const useSocket = (campaignId: string): UseSocketReturn => {
+export const useSocket = (campaignId: string, items?: JudgeItem[]): UseSocketReturn => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [state, setState] = useState<ControlState>({
@@ -27,7 +27,8 @@ export const useSocket = (campaignId: string): UseSocketReturn => {
     targetId: undefined,
     history: [],
     spinDuration: 5,
-    script: []
+    script: [],
+    items: items || [] // ✅ Initialize items
   });
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export const useSocket = (campaignId: string): UseSocketReturn => {
     return () => {
       newSocket.disconnect();
     };
-  }, [campaignId]);
+  }, [campaignId, items]); // ✅ Thêm items vào dependency
 
   const triggerSpin = useCallback((spinDuration?: number) => {
     if (!socket) return;
@@ -97,11 +98,14 @@ export const useSocket = (campaignId: string): UseSocketReturn => {
     console.log('🛑 Control: Triggering stop');
     socket.emit('control:stop', { 
       campaignId,
-      targetId: state.targetId 
+      targetId: state.targetId,
+      items: state.items, // ✅ Gửi danh sách items để server random nếu cần
+      script: state.script, // ✅ Gửi script để server tìm contestant/question
+      currentStep: state.currentStep // ✅ Current step trong script
     });
 
     setState(prev => ({ ...prev, status: 'stopped' }));
-  }, [socket, campaignId, state.targetId]);
+  }, [socket, campaignId, state.targetId, state.items, state.script, state.currentStep]);
 
   const triggerNext = useCallback(() => {
     if (!socket) return;

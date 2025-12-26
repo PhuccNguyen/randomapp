@@ -60,7 +60,10 @@ function GuestDisplayContent() {
   const [spinCount, setSpinCount] = useState(0);
   const [fullyStoppedId, setFullyStoppedId] = useState<string | null>(null); // BGK đã dừng hoàn toàn
   const [scriptInfo, setScriptInfo] = useState<{ contestant?: string; question?: string } | null>(null);
+  const [serverContestant, setServerContestant] = useState<string | undefined>(); // ✅ Từ server
+  const [serverQuestion, setServerQuestion] = useState<string | undefined>(); // ✅ Từ server
   const confettiRef = useRef<HTMLDivElement>(null);
+  const campaignRef = useRef<Campaign | null>(null); // ✅ Keep campaign reference updated
 
   // Fetch campaign data
   useEffect(() => {
@@ -94,6 +97,7 @@ function GuestDisplayContent() {
 
         const campaignData = data.campaign || data;
         console.log('✅ Campaign loaded:', campaignData.name);
+        console.log('📋 Campaign items:', campaignData.items?.map((i: any, idx: number) => ({ idx, id: i.id, name: i.name })));
         setCampaign(campaignData);
       } catch (err: any) {
         setError(err.message);
@@ -104,6 +108,11 @@ function GuestDisplayContent() {
 
     fetchCampaign();
   }, [campaignId, campaignCode]);
+
+  // ✅ Keep campaignRef updated whenever campaign changes
+  useEffect(() => {
+    campaignRef.current = campaign;
+  }, [campaign]);
 
   // Socket.IO connection
   useEffect(() => {
@@ -142,95 +151,103 @@ function GuestDisplayContent() {
         setWinner(null);
         setFullyStoppedId(null);
         // Lưu script info nếu có trong spinning state
+      // ✅ Lưu scriptInfo từ server
         if (data.scriptInfo) {
-          console.log('🎰 Display: Received scriptInfo during SPIN:', data.scriptInfo);
-          console.log('🎰 ScriptInfo question:', data.scriptInfo.question);
+          console.log('📋 Guest: ScriptInfo received during SPIN:', data.scriptInfo);
           setScriptInfo(data.scriptInfo);
-        } else {
-          console.log('🎰 Display: NO scriptInfo in SPIN status');
-          setScriptInfo(null);
+          setServerContestant(data.scriptInfo.contestant);
+          setServerQuestion(data.scriptInfo.question);
         }
-        setSpinCount(prev => prev + 1);
-      } else if (data.status === 'stopped') {
-        console.log('⏹️ Status: STOPPED - Data:', data);
-        setStopping(true);
-        setSpinning(false);
+        
+        // Lưu targetId nếu có
         if (data.targetId) {
           setTargetId(data.targetId);
         }
-        // Lưu script info nếu có
-        if (data.scriptInfo) {
-          console.log('🎰 Display: Received scriptInfo during STOPPED:', data.scriptInfo);
-          console.log('🎰 ScriptInfo question:', data.scriptInfo.question);
-          setScriptInfo(data.scriptInfo);
-        } else {
-          console.log('🎰 Display: NO scriptInfo in STOPPED status');
+        
+        setSpinCount(prev => prev + 1);
+        
+      } else if (data.status === 'stopped') {
+        console.log('⏹️ Guest: STOPPED status');
+        console.log('⏹️ Guest: Received data:', {
+          targetId: data.targetId,
+          contestant: data.contestant,
+          question: data.question,
+          scriptInfo: data.scriptInfo
+        });
+        
+        const incomingTargetId = data.targetId ?? null;
+        setTargetId(incomingTargetId);
+        if (incomingTargetId) {
+          console.log('✅ Guest: Setting targetId:', incomingTargetId);
         }
+
+        setStopping(true);
+        setSpinning(false);
+        
+        // ✅ Lưu contestant & question từ nhiều nguồn
+        const finalContestant = data.contestant || data.scriptInfo?.contestant;
+        const finalQuestion = data.question || data.scriptInfo?.question;
+        
+        if (finalContestant) {
+          setServerContestant(finalContestant);
+          console.log('👤 Guest: Contestant saved:', finalContestant);
+        }
+        
+        if (finalQuestion) {
+          setServerQuestion(finalQuestion);
+          console.log('❓ Guest: Question saved:', finalQuestion);
+        }
+        
+        // Lưu scriptInfo
+        if (data.scriptInfo) {
+          setScriptInfo(data.scriptInfo);
+        }
+        
       } else if (data.status === 'idle') {
-        console.log('⏸️ Status: IDLE');
+        console.log('⏸️ Guest: IDLE status');
         setSpinning(false);
         setStopping(false);
         setTargetId(null);
       }
     });
-    
-    // Lắng nghe event override riêng nhưng không hiển thị ngay
-    newSocket.on('override:target', (data: any) => {
-      console.log('🎯 Override target set (hidden):', data.targetId);
-      // Không set state ở đây, chỉ backend giữ thông tin
-    });
 
     setSocket(newSocket);
 
-    return () => {
+ return () => {
       newSocket.disconnect();
     };
   }, [campaignId, campaign?._id]);
 
-  // Handle spin complete
+ // Handle spin complete
   const handleSpinComplete = useCallback((result: any) => {
-    console.log('🎉 Winner:', result.name);
-    console.log('🎉 ScriptInfo state:', scriptInfo);
-    console.log('🎉 Result data:', result);
-    console.log('🎉 Result contestant:', result.contestant);
-    console.log('🎉 Result question:', result.question);
+    console.log('🎉 Guest: Spin complete - Result:', result);
+    console.log('🎉 Guest: ServerContestant:', serverContestant);
+    console.log('🎉 Guest: ServerQuestion:', serverQuestion);
     
+    // ✅ Tạo winner object với dữ liệu từ server
     const newWinner: Winner = {
       id: result.id,
-      name: result.name,
+      name: result.name, // Tên giám khảo
       color: result.color || '#667eea',
       timestamp: Date.now(),
-      contestant: scriptInfo?.contestant || result.contestant,
-      question: scriptInfo?.question || result.question,
+      contestant: serverContestant, // ✅ Tên thí sinh từ server
+      question: serverQuestion,     // ✅ Câu hỏi từ server
       imageUrl: result.imageUrl
     };
     
-    console.log('🎉 Final winner object:', newWinner);
-    console.log('🎉 Winner question value:', newWinner.question);
-    console.log('🎉 Winner question boolean check:', !!newWinner.question);
+console.log('🎉 Guest: Final winner object:', newWinner);
     
     setWinner(newWinner);
     setHistory(prev => [newWinner, ...prev].slice(0, 10));
-    
-    // Set fullyStoppedId sau khi vòng quay đã dừng hoàn toàn
     setFullyStoppedId(result.id);
     
-    // Gửi kết quả về server để lưu vào history
-    if (socket && campaignId) {
-      socket.emit('report:result', {
-        campaignId: campaignId,
-        result: result.name,
-        targetId: result.id
-      });
-    }
-    
-    // Show winner animation
+    // Show winner modal
     setTimeout(() => {
       setShowWinner(true);
       triggerConfetti();
       playWinnerSound();
     }, 500);
-  }, [socket, campaignId, scriptInfo]);
+  }, [serverContestant, serverQuestion]);
 
   // Confetti effect
   const triggerConfetti = () => {
@@ -446,66 +463,68 @@ function GuestDisplayContent() {
       </div>
 
       {/* Winner Modal */}
-{showWinner && winner && (
-  <div className={styles.winnerModal}>
-    <div className={styles.winnerOverlay} onClick={() => setShowWinner(false)}></div>
-    <div className={styles.winnerContent}>
-      <div className={styles.winnerIcon}>
-        <Crown size={80} />
-        <div className={styles.winnerGlow}></div>
-      </div>
-      
-      <h2 className={styles.winnerTitle}>Chúc Mừng!</h2>
-      
-      {/* Contestant Info from Script */}
-      {winner.contestant && (
-        <div className={styles.winnerContestant}>
-          <span className={styles.winnerLabel}>Thí sinh</span>
-          <span className={styles.winnerContestantName}>{winner.contestant}</span>
-        </div>
-      )}
-      
-      {/* Winner Image */}
-      {winner.imageUrl && (
-        <div className={styles.winnerImageContainer}>
-          <img 
-            src={winner.imageUrl} 
-            alt={winner.name}
-            className={styles.winnerImage}
-          />
-        </div>
-      )}
-      
-      {/* Winner Name */}
-      <div 
-        className={styles.winnerName}
-        style={{ color: winner.color }}
-      >
-        {winner.name}
-      </div>
-      
-      <p className={styles.winnerSubtext}>đã được chọn!</p>
-      
-      {/* Question from Script */}
-      {winner.question && (
-        <div className={styles.winnerQuestion}>
-          <div className={styles.questionIcon}>❓</div>
-          <div className={styles.questionContent}>
-            <span className={styles.questionLabel}>Câu hỏi:</span>
-            <p className={styles.questionText}>{winner.question}</p>
+      {showWinner && winner && (
+        <div className={styles.winnerModal}>
+          <div className={styles.winnerOverlay} onClick={() => setShowWinner(false)}></div>
+          <div className={styles.winnerContent}>
+            <div className={styles.winnerIcon}>
+              <Crown size={80} />
+              <div className={styles.winnerGlow}></div>
+            </div>
+            
+            <h2 className={styles.winnerTitle}>Chúc Mừng!</h2>
+            
+            {/* ✅ Hiển thị Thí sinh */}
+            {winner.contestant && (
+              <div className={styles.winnerContestant}>
+                <span className={styles.winnerLabel}>Thí sinh</span>
+                <span className={styles.winnerContestantName}>{winner.contestant}</span>
+              </div>
+            )}
+            
+            {/* ✅ Hiển thị Giám khảo được chọn */}
+            <div className={styles.winnerJudgeSection}>
+              {winner.imageUrl && (
+                <div className={styles.winnerImageContainer}>
+                  <img 
+                    src={winner.imageUrl} 
+                    alt={winner.name}
+                    className={styles.winnerImage}
+                  />
+                </div>
+              )}
+              
+              <div className={styles.winnerJudgeLabel}>Giám khảo được chọn</div>
+              <div 
+                className={styles.winnerName}
+                style={{ color: winner.color }}
+              >
+                {winner.name}
+              </div>
+            </div>
+            
+            <p className={styles.winnerSubtext}>sẽ đặt câu hỏi!</p>
+            
+            {/* ✅ Hiển thị Câu hỏi */}
+            {winner.question && (
+              <div className={styles.winnerQuestion}>
+                <div className={styles.questionIcon}>❓</div>
+                <div className={styles.questionContent}>
+                  <span className={styles.questionLabel}>Câu hỏi:</span>
+                  <p className={styles.questionText}>{winner.question}</p>
+                </div>
+              </div>
+            )}
+            
+            <button 
+              className={styles.winnerCloseButton}
+              onClick={() => setShowWinner(false)}
+            >
+              Tiếp tục
+            </button>
           </div>
         </div>
       )}
-      
-      <button 
-        className={styles.winnerCloseButton}
-        onClick={() => setShowWinner(false)}
-      >
-        Tiếp tục
-      </button>
-    </div>
-  </div>
-)}
 
       {/* Footer */}
       <footer className={styles.footer}>

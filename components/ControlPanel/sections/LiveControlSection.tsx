@@ -37,6 +37,7 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
   const [overrideTarget, setOverrideTarget] = useState<string>('');
   const [autoStopTimer, setAutoStopTimer] = useState<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const [lastSpinMode, setLastSpinMode] = useState<'manual' | 'auto' | 'script' | null>(null); // ✅ Track spin mode
 
   // Sync override với state.targetId từ script (chỉ khi có script)
   useEffect(() => {
@@ -73,12 +74,18 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
   // ==================== HANDLER FUNCTIONS ====================
 
   // 🎮 MANUAL SPIN: Quay thủ công, không giới hạn thời gian
+  // ✅ Dùng "Ép kết quả" (overrideTarget) chứ KHÔNG phải script
   const handleManualSpin = () => {
-    console.log('🎮 Manual Spin - No time limit');
+    console.log('🎮 Manual Spin - Using Override Target Mode');
+    setLastSpinMode('manual'); // ✅ Set mode
     
-    // Set override nếu có
+    // ✅ Lấy target từ "Ép kết quả" dropdown
     if (overrideTarget) {
+      console.log('🎯 Manual Spin: Override target set to', overrideTarget);
       onOverride(overrideTarget);
+    } else {
+      console.log('🎲 Manual Spin: No override - server will random');
+      onOverride(''); // Clear override nếu chọn "Ngẫu nhiên"
     }
     
     // Quay không có duration (hoặc duration rất lớn)
@@ -99,8 +106,10 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
   };
 
   // 📜 SCRIPT NEXT: Tự động theo kịch bản
+  // ✅ CHỈ dùng target từ SCRIPT, KHÔNG dùng overrideTarget dropdown
   const handleScriptNext = () => {
-    console.log('📜 Script Next - Running CURRENT script step:', state.currentStep);
+    console.log('📜 Script Next - Using SCRIPT Target Mode (IGNORE Override)');
+    setLastSpinMode('script'); // ✅ Set mode
     
     // Lấy script bước HIỆN TẠI (không phải next)
     const currentScriptStep = state.script?.[state.currentStep];
@@ -112,11 +121,13 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
     
     console.log('📋 Current script:', currentScriptStep);
     
-    // Set override target từ script TRƯỚC KHI quay
+    // ✅ Lấy target từ SCRIPT, KHÔNG phải từ overrideTarget dropdown
     const scriptTargetId = currentScriptStep.target_judge_id;
     if (scriptTargetId) {
-      console.log('🎯 Setting target from script:', scriptTargetId, '-', judges.find(j => j.id === scriptTargetId)?.name);
+      console.log('🎯 Script Next: Setting target from SCRIPT:', scriptTargetId, '-', judges.find(j => j.id === scriptTargetId)?.name);
       onOverride(scriptTargetId);
+    } else {
+      console.warn('⚠️ Script Next: No target in script');
     }
     
     // Đợi 50ms để override apply xong
@@ -156,10 +167,17 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
   };
 
   // Vòng lặp tự động
+  // ✅ Dùng "Ép kết quả" (overrideTarget) chứ KHÔNG phải script
   const startAutoSpinCycle = () => {
-    // Set override nếu có
+    setLastSpinMode('auto'); // ✅ Set mode
+    
+    // ✅ Lấy target từ "Ép kết quả" dropdown
     if (overrideTarget) {
+      console.log('🔄 Auto Mode: Override target set to', overrideTarget);
       onOverride(overrideTarget);
+    } else {
+      console.log('🎲 Auto Mode: No override - server will random');
+      onOverride(''); // Clear override nếu chọn "Ngẫu nhiên"
     }
     
     // Quay
@@ -422,40 +440,62 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
         </div>
       </div>
 
-      {/* ==================== ZONE 3: KỊCH BẢN HIỆN TẠI ==================== */}
-      {state.targetId && state.script && state.script[state.currentStep] && (
+      {/* ==================== ZONE 3: KẾT QUẢ VÒNG QUAY HOẶC KỊCH BẢN ==================== */}
+      {state.targetId && (
         <div className={styles.controlZone}>
-          <h3 className={styles.zoneTitle}>
-            <span className={styles.scriptIcon}>📜</span>
-            <span>Kịch Bản Bước {state.currentStep + 1}</span>
-          </h3>
+          {/* ✅ Nếu là chế độ SCRIPT, hiện script content */}
+          {lastSpinMode === 'script' && state.script && state.script[state.currentStep] ? (
+            <>
+              <h3 className={styles.zoneTitle}>
+                <span className={styles.scriptIcon}>📜</span>
+                <span>Kịch Bản Bước {state.currentStep + 1}</span>
+              </h3>
 
-          <div className={styles.scriptDisplay}>
-            <div className={styles.scriptRow}>
-              <span className={styles.scriptLabel}>🎯 Giám khảo:</span>
-              <span className={styles.scriptValue}>
-                <strong>{judges.find(j => j.id === state.targetId)?.name}</strong>
-              </span>
-            </div>
+              <div className={styles.scriptDisplay}>
+                <div className={styles.scriptRow}>
+                  <span className={styles.scriptLabel}>🎯 Giám khảo:</span>
+                  <span className={styles.scriptValue}>
+                    <strong>{judges.find(j => j.id === state.targetId)?.name}</strong>
+                  </span>
+                </div>
 
-            {state.script[state.currentStep].contestant && (
-              <div className={styles.scriptRow}>
-                <span className={styles.scriptLabel}>👤 Thí sinh:</span>
-                <span className={styles.scriptValue}>
-                  <strong>{state.script[state.currentStep].contestant}</strong>
-                </span>
+                {state.script[state.currentStep].contestant && (
+                  <div className={styles.scriptRow}>
+                    <span className={styles.scriptLabel}>👤 Thí sinh:</span>
+                    <span className={styles.scriptValue}>
+                      <strong>{state.script[state.currentStep].contestant}</strong>
+                    </span>
+                  </div>
+                )}
+
+                {state.script[state.currentStep].question_content && (
+                  <div className={styles.scriptQuestionBox}>
+                    <span className={styles.scriptLabel}>❓ Câu hỏi:</span>
+                    <p className={styles.scriptQuestionText}>
+                      {state.script[state.currentStep].question_content}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </>
+          ) : (
+            <>
+              {/* ✅ Nếu là chế độ MANUAL hoặc AUTO, chỉ hiện tên giám khảo được chọn */}
+              <h3 className={styles.zoneTitle}>
+                <span className={styles.spinResultIcon}>🎯</span>
+                <span>Kết Quả Vòng Quay</span>
+              </h3>
 
-            {state.script[state.currentStep].question_content && (
-              <div className={styles.scriptQuestionBox}>
-                <span className={styles.scriptLabel}>❓ Câu hỏi:</span>
-                <p className={styles.scriptQuestionText}>
-                  {state.script[state.currentStep].question_content}
-                </p>
+              <div className={styles.scriptDisplay}>
+                <div className={styles.scriptRow}>
+                  <span className={styles.scriptLabel}>✨ Giám khảo được chọn:</span>
+                  <span className={styles.scriptValue}>
+                    <strong>{judges.find(j => j.id === state.targetId)?.name}</strong>
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       )}
 

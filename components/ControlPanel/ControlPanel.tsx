@@ -34,7 +34,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     startAutoSpin,
     stopAutoSpin,
     setStep
-  } = useSocket(campaignId);
+  } = useSocket(campaignId, items); // ✅ Truyền items
   
   const [script, setScript] = useState<DirectorScript[]>(initialScript);
   const [saving, setSaving] = useState(false);

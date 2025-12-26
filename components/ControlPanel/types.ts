@@ -21,8 +21,9 @@ export interface ControlState {
   currentStep: number;
   targetId?: string;
   history: HistoryItem[];
-    spinDuration: number; // Thêm duration vào state
+  spinDuration: number; // Thêm duration vào state
   script?: DirectorScript[]; // Thêm script vào state
+  items?: JudgeItem[]; // Thêm danh sách items cho random server-side
 }
 
 export interface HistoryItem {

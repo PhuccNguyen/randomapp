@@ -244,8 +244,9 @@ export const initSocket = (server: NetServer): SocketIOServer => {
 
     // 8. CONTROL:STOP (Control Panel triggers stop)
     socket.on('control:stop', (data: any) => {
-      const { campaignId, targetId } = data;
-      console.log(`🎮 Control:Stop for ${campaignId}`, { targetId });
+      const { campaignId, targetId, items, script, currentStep } = data;
+      console.log(`🎮 Control:Stop for ${campaignId}`, { targetId, itemsCount: items?.length });
+      console.log(`🎮 Items from Control Panel:`, items?.map((i: any, idx: number) => ({ idx, id: i.id, name: i.name })));
       
       const session = sessions.get(campaignId) || { 
         currentStep: 1, 
@@ -254,17 +255,71 @@ export const initSocket = (server: NetServer): SocketIOServer => {
       };
       session.status = 'stopped';
       
-      // Use override target if set
-      const finalTargetId = targetId || session.lastTargetId;
+      // ✅ CRITICAL FIX: Server random nếu targetId rỗng (chọn "Ngẫu nhiên")
+      // LUÔN RANDOM mỗi lần để mỗi vòng quay có kết quả khác nhau
+      let finalTargetId = targetId;
+      
+      // Nếu targetId rỗng hoặc undefined (chọn "🎲 Ngẫu nhiên"), server LUÔN random
+      if (!targetId && items && items.length > 0) {
+        const randomIndex = Math.floor(Math.random() * items.length);
+        finalTargetId = items[randomIndex].id;
+        console.log(`🎯 Server RANDOM target (empty override): index=${randomIndex}, id=${finalTargetId}, name=${items[randomIndex].name}`);
+        console.log(`🎯 Server randomly picked item at index ${randomIndex}:`, items[randomIndex]);
+      } else if (targetId) {
+        // Nếu có targetId cụ thể (chọn 1 Judge), dùng nó
+        console.log(`🎯 Server using OVERRIDE target: id=${targetId}`);
+        const foundItem = items?.find((i: any) => i.id === targetId);
+        console.log(`🎯 Found override item:`, foundItem);
+      } else {
+        // Fallback: không có items, random index
+        console.warn('⚠️ No items provided for random selection');
+        finalTargetId = null;
+      }
+      
+      session.lastTargetId = finalTargetId;
+      
+      // ✅ NEW: Tìm contestant & question từ script nếu có
+      let contestant: string | undefined;
+      let question: string | undefined;
+      if (script && script.length > 0 && currentStep !== undefined) {
+        // ⚠️ IMPORTANT: currentStep từ Control Panel là từ 1 (step 1, 2, 3...)
+        // nhưng array index từ 0, nên phải trừ 1
+        const scriptIndex = currentStep - 1;
+        if (scriptIndex >= 0 && scriptIndex < script.length) {
+          const scriptStep = script[scriptIndex];
+          if (scriptStep) {
+            contestant = scriptStep.contestant;
+            question = scriptStep.question_content;
+            console.log(`📜 Found script info for step ${currentStep} (index ${scriptIndex}):`, { contestant, question });
+          }
+        } else {
+          console.warn(`⚠️ Script index ${scriptIndex} out of bounds (script.length: ${script.length})`);
+        }
+      }
+      
+      session.scriptInfo = {
+        step: currentStep,
+        contestant,
+        question
+      };
       
       sessions.set(campaignId, session);
 
-      // Broadcast to display with script info
+      console.log(`📤 Server broadcasting to campaign ${campaignId}:`, {
+        status: 'stopped',
+        targetId: finalTargetId,
+        contestant,
+        question
+      });
+
+      // Broadcast to display with SAME targetId to all guests
       io?.to(`campaign:${campaignId}`).emit('state:update', {
         status: 'stopped',
         currentStep: session.currentStep,
-        targetId: finalTargetId,
-        scriptInfo: session.scriptInfo // Gửi thông tin script
+        targetId: finalTargetId, // ✅ Tất cả guests nhận CÙNG targetId
+        scriptInfo: session.scriptInfo, // ✅ Gửi thông tin script
+        contestant, // ✅ Thí sinh
+        question    // ✅ Câu hỏi
       });
     });
 

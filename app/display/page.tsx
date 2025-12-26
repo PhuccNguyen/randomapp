@@ -289,7 +289,7 @@ const DisplayPage: React.FC = () => {
               <div className={styles.emptyState}>
                 <Tv size={64} className={styles.emptyIcon} />
                 <h3>Chưa có chiến dịch nào</h3>
-                <p>Tạo chiến dịch đầu tiên để bắt đầu sử dụng màn hình hiển thị</p>
+                <p>Chiến dịch bạn tạo sẽ xuất hiện ở đây - chỉ bạn mới có thể thấy</p>
                 <button
                   onClick={() => router.push('/campaign')}
                   className={styles.emptyButton}
@@ -378,8 +378,16 @@ const DisplayPage: React.FC = () => {
         {!isAuthenticated && (
           <div className={styles.guestMessage}>
             <p>
-              👋 Bạn chưa đăng nhập. <a href="/auth/login">Đăng nhập</a> để quản lý chiến dịch của riêng bạn!
+              👋 Bạn chưa đăng nhập. Hãy đăng nhập để quản lý chiến dịch của riêng bạn!
             </p>
+            <div className={styles.guestCta}>
+              <a href="/auth/login" className={`${styles.guestButton} ${styles.guestButtonPrimary}`}>
+                🔑 Đăng Nhập Ngay
+              </a>
+              <a href="/auth/register" className={`${styles.guestButton} ${styles.guestButtonSecondary}`}>
+                📝 Tạo Tài Khoản
+              </a>
+            </div>
           </div>
         )}
       </div>

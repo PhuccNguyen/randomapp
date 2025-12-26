@@ -32,7 +32,7 @@ export async function GET(
     // ✅ AUTHORIZATION CHECK
     const token = AuthService.extractTokenFromRequest(request);
     
-    // Public campaigns - anyone can view
+    // If campaign is PUBLIC - allow anyone to view
     if (campaign.isPublic) {
       return NextResponse.json({
         success: true,
@@ -40,10 +40,10 @@ export async function GET(
       });
     }
 
-    // Private campaigns - only owner can view
+    // If campaign is PRIVATE - require authentication
     if (!token) {
       return NextResponse.json(
-        { error: 'Authentication required to view private campaign' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
@@ -51,10 +51,10 @@ export async function GET(
     try {
       const payload = AuthService.verifyToken(token);
       
-      // Check if user is the owner
+      // Check if user is the owner - MUST be owner to view private campaign
       if (campaign.owner._id.toString() !== payload.userId) {
         return NextResponse.json(
-          { error: 'You do not have permission to view this campaign' },
+          { error: 'Bạn không có quyền truy cập chiến dịch này' },
           { status: 403 }
         );
       }

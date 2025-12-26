@@ -51,7 +51,8 @@ app.prepare().then(() => {
           targetId: null,
           history: [],
           spinDuration: 5,
-          script: []
+          script: [],
+          currentScriptInfo: null
         });
       }
 
@@ -63,35 +64,49 @@ app.prepare().then(() => {
     // Control: Spin
     socket.on('control:spin', (data) => {
       const { campaignId, spinDuration, targetId, scriptInfo } = data;
-      console.log('🎲 Control: Spin command received', { campaignId, spinDuration, targetId, scriptInfo });
+      console.log('🎲 Server: Spin command', { 
+        campaignId, 
+        spinDuration, 
+        targetId, 
+        scriptInfo 
+      });
 
       const state = campaignStates.get(campaignId);
       if (state) {
         state.status = 'spinning';
         state.spinDuration = spinDuration || 5;
+        
         if (targetId) {
           state.targetId = targetId;
         }
+        
         if (scriptInfo) {
-          state.currentScriptInfo = scriptInfo;
+          state.currentScriptInfo = {
+            step: scriptInfo.step,
+            contestant: scriptInfo.contestant,
+            question: scriptInfo.question
+          };
+          console.log('📋 Server: Saved scriptInfo:', state.currentScriptInfo);
         }
 
         campaignStates.set(campaignId, state);
 
-        // Broadcast to all clients in room
+        // ✅ Broadcast với đầy đủ thông tin
         io.to(`campaign:${campaignId}`).emit('state:update', {
           status: 'spinning',
           targetId: state.targetId,
           spinDuration: state.spinDuration,
           scriptInfo: state.currentScriptInfo
         });
+        
+        console.log('✅ Server: Broadcasted spinning state with scriptInfo');
       }
     });
 
     // Control: Stop
     socket.on('control:stop', (data) => {
       const { campaignId, targetId } = data;
-      console.log('🛑 Control: Stop command received', { campaignId, targetId });
+      console.log('🛑 Server: Stop command', { campaignId, targetId });
 
       const state = campaignStates.get(campaignId);
       if (state) {
@@ -99,6 +114,9 @@ app.prepare().then(() => {
         
         // Use provided targetId or existing one
         const finalTargetId = targetId || state.targetId;
+        
+        console.log('🛑 Server: Final targetId:', finalTargetId);
+        console.log('🛑 Server: Current scriptInfo:', state.currentScriptInfo);
 
         // Add to history
         const historyItem = {
@@ -106,32 +124,38 @@ app.prepare().then(() => {
           result: finalTargetId || 'Unknown',
           resultId: finalTargetId,
           timestamp: Date.now(),
-          contestant: state.currentScriptInfo?.contestant,
-          question: state.currentScriptInfo?.question,
+          contestant: state.currentScriptInfo?.contestant || null,
+          question: state.currentScriptInfo?.question || null,
           color: '#667eea'
         };
 
         state.history = [historyItem, ...state.history];
         campaignStates.set(campaignId, state);
 
-        // Broadcast stop with target
+        // ✅ Broadcast STOPPED với scriptInfo
         io.to(`campaign:${campaignId}`).emit('state:update', {
           status: 'stopped',
           targetId: finalTargetId,
+          contestant: state.currentScriptInfo?.contestant,
+          question: state.currentScriptInfo?.question,
           scriptInfo: state.currentScriptInfo
         });
 
         // Broadcast history update
         io.to(`campaign:${campaignId}`).emit('history:add', historyItem);
 
-        console.log('✅ History updated:', historyItem);
+        console.log('✅ Server: Broadcasted stopped state:', {
+          targetId: finalTargetId,
+          contestant: state.currentScriptInfo?.contestant,
+          question: state.currentScriptInfo?.question
+        });
       }
     });
 
     // Control: Next
     socket.on('control:next', (data) => {
       const { campaignId } = data;
-      console.log('⏭️ Control: Next command received', { campaignId });
+      console.log('⏭️ Server: Next command', { campaignId });
 
       const state = campaignStates.get(campaignId);
       if (state) {
@@ -142,7 +166,14 @@ app.prepare().then(() => {
 
         // Get next script item if exists
         if (state.script && state.script[state.currentStep]) {
-          state.targetId = state.script[state.currentStep].target_judge_id;
+          const nextScript = state.script[state.currentStep];
+          state.targetId = nextScript.target_judge_id;
+          state.currentScriptInfo = {
+            step: nextScript.step,
+            contestant: nextScript.contestant,
+            question: nextScript.question_content
+          };
+          console.log('⏭️ Server: Next script loaded:', state.currentScriptInfo);
         }
 
         campaignStates.set(campaignId, state);
@@ -150,15 +181,18 @@ app.prepare().then(() => {
         io.to(`campaign:${campaignId}`).emit('state:update', {
           status: 'idle',
           currentStep: state.currentStep,
-          targetId: state.targetId
+          targetId: state.targetId,
+          scriptInfo: state.currentScriptInfo
         });
+        
+        console.log('✅ Server: Broadcasted next state');
       }
     });
 
-    // Control: Set step (jump to specific step)
+    // Control: Set step
     socket.on('control:set-step', (data) => {
       const { campaignId, stepIndex, token } = data;
-      console.log('📍 Control: Set step', { campaignId, stepIndex });
+      console.log('📍 Server: Set step', { campaignId, stepIndex });
 
       const state = campaignStates.get(campaignId);
       if (state) {
@@ -168,7 +202,13 @@ app.prepare().then(() => {
         state.currentScriptInfo = null;
 
         if (state.script && state.script[state.currentStep]) {
-          state.targetId = state.script[state.currentStep].target_judge_id;
+          const currentScript = state.script[state.currentStep];
+          state.targetId = currentScript.target_judge_id;
+          state.currentScriptInfo = {
+            step: currentScript.step,
+            contestant: currentScript.contestant,
+            question: currentScript.question_content
+          };
         }
 
         campaignStates.set(campaignId, state);
@@ -176,10 +216,11 @@ app.prepare().then(() => {
         io.to(`campaign:${campaignId}`).emit('state:update', {
           status: 'idle',
           currentStep: state.currentStep,
-          targetId: state.targetId
+          targetId: state.targetId,
+          scriptInfo: state.currentScriptInfo
         });
 
-        // 💾 Save currentStep to database
+        // Save to database if token provided
         if (token) {
           fetch(`http://localhost:3000/api/campaigns/${campaignId}`, {
             method: 'PUT',
@@ -190,18 +231,18 @@ app.prepare().then(() => {
             body: JSON.stringify({ currentStep: state.currentStep })
           })
             .then(res => res.json())
-            .then(data => console.log('💾 CurrentStep saved to DB:', { campaignId, stepIndex }))
-            .catch(err => console.error('❌ Failed to save currentStep:', err));
+            .then(data => console.log('💾 Server: CurrentStep saved to DB'))
+            .catch(err => console.error('❌ Server: Failed to save currentStep:', err));
         }
 
-        console.log('✅ Step updated to:', state.currentStep + 1);
+        console.log('✅ Server: Step updated to:', state.currentStep + 1);
       }
     });
 
     // Control: Override target
     socket.on('control:override', (data) => {
       const { campaignId, targetId } = data;
-      console.log('🎯 Control: Override target', { campaignId, targetId });
+      console.log('🎯 Server: Override target', { campaignId, targetId });
 
       const state = campaignStates.get(campaignId);
       if (state) {
@@ -211,45 +252,51 @@ app.prepare().then(() => {
         io.to(`campaign:${campaignId}`).emit('state:update', {
           targetId: targetId
         });
+        
+        console.log('✅ Server: Override target broadcasted');
       }
     });
 
     // Control: Update script
     socket.on('control:update-script', (data) => {
       const { campaignId, script } = data;
-      console.log('📜 Control: Update script', { campaignId, scriptLength: script.length, currentStep: campaignStates.get(campaignId)?.currentStep });
+      console.log('📜 Server: Update script', { 
+        campaignId, 
+        scriptLength: script.length 
+      });
 
       const state = campaignStates.get(campaignId);
       if (state) {
         state.script = script;
         
-        // Update targetId from current script step
+        // Update targetId and scriptInfo from current script step
         if (script[state.currentStep]) {
-          state.targetId = script[state.currentStep].target_judge_id;
+          const currentScript = script[state.currentStep];
+          state.targetId = currentScript.target_judge_id;
+          state.currentScriptInfo = {
+            step: currentScript.step,
+            contestant: currentScript.contestant,
+            question: currentScript.question_content
+          };
+          console.log('📜 Server: Updated scriptInfo:', state.currentScriptInfo);
         }
 
         campaignStates.set(campaignId, state);
 
-        // Prepare scriptInfo from current step
-        const currentScript = script[state.currentStep];
-        const scriptInfo = currentScript ? {
-          step: currentScript.step,
-          contestant: currentScript.contestant,
-          question: currentScript.question_content
-        } : null;
-
         io.to(`campaign:${campaignId}`).emit('state:update', {
           script: script,
           targetId: state.targetId,
-          scriptInfo: scriptInfo
+          scriptInfo: state.currentScriptInfo
         });
+        
+        console.log('✅ Server: Script update broadcasted');
       }
     });
 
     // Control: Auto-spin
     socket.on('control:auto-spin', (data) => {
       const { campaignId, duration } = data;
-      console.log('⏰ Control: Auto-spin started', { campaignId, duration });
+      console.log('⏰ Server: Auto-spin started', { campaignId, duration });
 
       // Trigger spin
       socket.emit('control:spin', { campaignId, spinDuration: duration });

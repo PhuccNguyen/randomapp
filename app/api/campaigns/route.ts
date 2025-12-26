@@ -161,29 +161,21 @@ export async function GET(request: NextRequest) {
     if (token) {
       try {
         const payload = AuthService.verifyToken(token);
+        // Chỉ show campaigns của user đang login
         campaigns = await Campaign.find({
-          $or: [
-            { owner: payload.userId, isActive: true },
-            { isPublic: true, isActive: true }
-          ]
+          owner: payload.userId
         })
         .populate('owner', 'name email tier')
         .sort({ createdAt: -1 })
         .select('-__v')
         .lean();
       } catch {
-        campaigns = await Campaign.find({ isPublic: true, isActive: true })
-          .populate('owner', 'name tier')
-          .sort({ createdAt: -1 })
-          .select('-__v')
-          .lean();
+        // Token không hợp lệ - return empty list
+        campaigns = [];
       }
     } else {
-      campaigns = await Campaign.find({ isPublic: true, isActive: true })
-        .populate('owner', 'name tier')
-        .sort({ createdAt: -1 })
-        .select('-__v')
-        .lean();
+      // Không có token - return empty list (user phải login để see campaigns)
+      campaigns = [];
     }
     
     return NextResponse.json({
