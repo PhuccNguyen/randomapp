@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-// Danh sách các route cần bảo vệ (Để dành cho Phase sau, hiện tại chưa dùng tới để tránh lỗi)
-const protectedRoutes = [
-  '/campaign',
-  '/display',
-  '/control',
-  '/dashboard',
-  '/profile',
-];
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // --- BẢO VỆ CÁC ROUTE YÊU CẦU XÁC THỰC ---
+  // --- BẢO VỀ CÁC ROUTE YÊU CẦU XÁC THỰC ---
   const protectedPageRoutes = [
     '/campaign',
     '/control',
@@ -25,10 +17,11 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedPageRoutes.some(route => pathname.startsWith(route));
   
   if (isProtectedRoute) {
-    // Kiểm tra token
-    const token = request.cookies.get('auth-token')?.value || 
-                  request.headers.get('authorization')?.replace('Bearer ', '') ||
-                  request.cookies.get('token')?.value;
+    // Lấy token từ NextAuth
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET 
+    });
     
     if (!token) {
       // Redirect sang login nếu không có token

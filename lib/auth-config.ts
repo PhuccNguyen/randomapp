@@ -126,7 +126,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/login',
+    // Không set signIn - để NextAuth handle mặc định
+    // Pages mặc định: NextAuth sẽ redirect thành công
     error: '/auth/error',
     newUser: '/auth/complete-profile',
   },
