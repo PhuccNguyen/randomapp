@@ -89,30 +89,59 @@ export default function LoginPage() {
     setError('');
     try {
       const redirectPath = searchParams.get('redirect') || '/control';
+      console.log('🚀 Starting Google login, will redirect to:', redirectPath);
       
       // Sử dụng signIn với redirect: false
-      // Chúng tôi sẽ xử lý redirect thủ công
       const result = await signIn('google', {
         redirect: false,
       });
       
-      console.log('Google sign in result:', result);
+      console.log('📊 Google sign in result:', result);
+      console.log('📊 Result keys:', result ? Object.keys(result) : 'null');
       
       if (result?.error) {
-        console.error('Google sign in error:', result.error);
+        console.error('❌ Google sign in error:', result.error);
         setError(result.error === 'AccessDenied' ? 'Bạn đã từ chối quyền truy cập' : `Lỗi: ${result.error}`);
         setIsGoogleLoading(false);
-      } else if (result?.ok) {
-        console.log('✅ Google sign in successful, redirecting to:', redirectPath);
-        // Redirect thủ công để đảm bảo user được đưa đến đúng trang
-        // Dùng window.location thay vì router.push để force refresh
-        window.location.href = redirectPath;
       } else {
-        setError('Không thể đăng nhập bằng Google. Vui lòng thử lại.');
-        setIsGoogleLoading(false);
+        // Với OAuth, NextAuth không trả về ok: true ngay
+        // Thay vào đó, hãy kiểm tra xem session đã được tạo hay không
+        console.log('⏳ OAuth flow complete, checking session...');
+        
+        // Poll cho session được tạo
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const checkSession = async () => {
+          try {
+            const response = await fetch('/api/auth/check');
+            const data = await response.json();
+            
+            if (data.authenticated) {
+              console.log('✅ Session authenticated! Redirecting to:', redirectPath);
+              window.location.href = redirectPath;
+              return true;
+            } else if (attempts < maxAttempts) {
+              attempts++;
+              console.log(`⏳ Session not ready (attempt ${attempts}/${maxAttempts}), retrying...`);
+              setTimeout(checkSession, 500);
+            } else {
+              console.error('❌ Session not authenticated after', maxAttempts, 'attempts');
+              setError('Không thể xác thực phiên. Vui lòng thử lại.');
+              setIsGoogleLoading(false);
+            }
+          } catch (err) {
+            console.error('❌ Error checking session:', err);
+            setError('Lỗi khi kiểm tra phiên');
+            setIsGoogleLoading(false);
+          }
+        };
+        
+        // Bắt đầu kiểm tra
+        setTimeout(checkSession, 500);
       }
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error('❌ Google login error:', error);
       setError('Không thể kết nối đến Google. Vui lòng kiểm tra kết nối internet.');
       setIsGoogleLoading(false);
     }
