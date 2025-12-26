@@ -321,6 +321,18 @@ console.log('🎉 Guest: Final winner object:', newWinner);
       {/* Confetti Container */}
       <div ref={confettiRef} className={styles.confettiContainer}></div>
 
+      {/* Brand Header */}
+      <div className={styles.brandHeader}>
+        <div className={styles.brandLogos}>
+          <img src="/images/logo/tingnect-logo.png" alt="Tingnect" className={styles.brandLogo} />
+          <span className={styles.brandDivider}>×</span>
+          <img src="/images/logo/trustlabs-logos.png" alt="TrustLabs" className={styles.brandLogo} />
+        </div>
+        <div className={styles.brandText}>
+          <strong>tingrandom</strong> Hệ Sinh Thái Của <strong>TINGNECT</strong> Phát Triển Bởi <strong>TRUSTLABS</strong>
+        </div>
+      </div>
+
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>

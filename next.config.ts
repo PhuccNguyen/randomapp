@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Output standalone cho Docker
+  output: 'standalone',
+  
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Loại trừ các Node.js modules khỏi client bundle

@@ -1591,3 +1591,270 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* ==================== BRAND HEADER ==================== */
+.brandHeader {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.brandLogos {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brandLogo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.brandDivider {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.5rem;
+  font-weight: 300;
+}
+
+.brandText {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.brandText strong {
+  color: #a78bfa;
+  font-weight: 700;
+}
+
+/* ==================== COMPACT HEADER ==================== */
+.compactHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.compactHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  flex: 1;
+}
+
+/* ==================== COMPACT STATUS BAR ==================== */
+.compactStatusBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.compactStatusItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.compactLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.compactText {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.compactInput {
+  width: 50px;
+  padding: 4px 6px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+}
+
+.compactInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.compactResetBtn {
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compactResetBtn:hover:not(:disabled) {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+.compactResetBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ==================== COMPACT ZONE ==================== */
+.compactZone {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.compactZoneTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== COMPACT HINT ==================== */
+.compactHint {
+  padding: 0.5rem 0.75rem;
+  background: rgba(102, 126, 234, 0.08);
+  border-left: 2px solid rgba(102, 126, 234, 0.5);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-top: 0.75rem;
+}
+
+.compactHint strong {
+  color: #a78bfa;
+}
+
+/* ==================== COMPACT SETTING ROW ==================== */
+.compactSettingRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.compactSelect {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compactSelect:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.compactSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.compactSelect option {
+  background: #1f2937;
+  color: white;
+}
+
+.overridePreviewInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 4px;
+  color: #a78bfa;
+  font-size: 0.85rem;
+}
+
+/* ==================== COMPACT SCRIPT DISPLAY ==================== */
+.compactScriptDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.compactScriptRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.compactScriptRow .scriptLabel {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  min-width: 90px;
+  font-size: 0.85rem;
+}
+
+.compactScriptRow .scriptValue {
+  color: white;
+  flex: 1;
+}
+
+/* ==================== AUTO MODE COMPACT ==================== */
+.autoModeCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.autoModeCompact .autoModeDesc {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.autoModeCompact .autoModeDesc strong {
+  color: #a78bfa;
+  font-weight: 700;
+}

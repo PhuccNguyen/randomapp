@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Backup files
+*.backup
+mongodb-backup*/
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
+
+# Uploads
+public/uploads/*
+!public/uploads/.gitkeep

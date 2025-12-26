@@ -223,10 +223,10 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
         </div>
       </div>
 
-      {/* ==================== STATUS DISPLAY ==================== */}
-      <div className={styles.stateDisplay}>
-        <div className={styles.stateCard}>
-          <span className={styles.stateLabel}>Trạng thái</span>
+      {/* ==================== COMPACT STATUS BAR ==================== */}
+      <div className={styles.compactStatusBar}>
+        <div className={styles.compactStatusItem}>
+          <span className={styles.compactLabel}>Trạng thái:</span>
           <span className={`${styles.stateBadge} ${styles[state.status]}`}>
             {state.status === 'idle' && '⏸️ Chờ'}
             {state.status === 'spinning' && '🔄 Đang quay'}
@@ -235,9 +235,9 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
           </span>
         </div>
 
-        <div className={styles.stateCard}>
-          <span className={styles.stateLabel}>Bước</span>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className={styles.compactStatusItem}>
+          <span className={styles.compactLabel}>Bước:</span>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <input
               type="number"
               min="0"
@@ -248,32 +248,13 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
                 onSetStep?.(stepIndex);
               }}
               disabled={!connected || state.status === 'spinning'}
-              style={{
-                width: '60px',
-                padding: '6px 8px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                border: '2px solid #3b82f6',
-                borderRadius: '6px',
-                backgroundColor: '#f0f9ff',
-                cursor: !connected || state.status === 'spinning' ? 'not-allowed' : 'pointer'
-              }}
+              className={styles.compactInput}
             />
-            <span style={{ fontSize: '14px', color: '#666' }}>/ {state.script ? state.script.length : 0}</span>
+            <span className={styles.compactText}>/ {state.script ? state.script.length : 0}</span>
             <button
               onClick={() => onSetStep?.(0)}
               disabled={!connected || state.status === 'spinning' || state.currentStep === 0}
-              style={{
-                padding: '6px 10px',
-                fontSize: '12px',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: !connected || state.status === 'spinning' || state.currentStep === 0 ? 'not-allowed' : 'pointer',
-                opacity: !connected || state.status === 'spinning' || state.currentStep === 0 ? 0.5 : 1
-              }}
+              className={styles.compactResetBtn}
               title="Reset về bước 0"
             >
               🔄
@@ -282,15 +263,15 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
         </div>
 
         {countdown > 0 && (
-          <div className={styles.stateCard}>
-            <span className={styles.stateLabel}>Đếm ngược</span>
+          <div className={styles.compactStatusItem}>
+            <span className={styles.compactLabel}>Đếm ngược:</span>
             <span className={styles.countdownValue}>{countdown}s</span>
           </div>
         )}
 
         {autoMode && (
-          <div className={styles.stateCard}>
-            <span className={styles.stateLabel}>Chế độ</span>
+          <div className={styles.compactStatusItem}>
+            <span className={styles.compactLabel}>Chế độ:</span>
             <span className={styles.autoModeBadge}>🔄 Tự động</span>
           </div>
         )}
@@ -349,49 +330,22 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
           </button>
         </div>
 
-        <div className={styles.controlHints}>
-          <div className={styles.hint}>
-            <strong>Quay + Dừng:</strong> Điều khiển hoàn toàn thủ công, không giới hạn thời gian
-          </div>
-          <div className={styles.hint}>
-            <strong>Tiếp Theo:</strong> Tự động chạy kịch bản, quay {spinDuration}s và dừng theo BGK đã soạn
-          </div>
+        <div className={styles.compactHint}>
+          💡 <strong>Quay + Dừng:</strong> Thủ công | <strong>Tiếp Theo:</strong> Kịch bản ({spinDuration}s)
         </div>
       </div>
 
       {/* ==================== ZONE 2: CÀI ĐẶT ==================== */}
-      <div className={styles.controlZone}>
-        <h3 className={styles.zoneTitle}>
-          <Clock size={20} />
+      <div className={styles.compactZone}>
+        <h3 className={styles.compactZoneTitle}>
+          <Clock size={18} />
           <span>Cài Đặt</span>
         </h3>
 
-        {/* Spin Duration */}
-        <div className={styles.settingGroup}>
+        <div className={styles.compactSettingRow}>
           <label className={styles.settingLabel}>
-            Thời gian quay: <strong>{spinDuration}s</strong>
+            ⏱️ Thời gian: <strong>{spinDuration}s</strong>
           </label>
-          <p className={styles.settingDesc}>
-            Áp dụng cho: <strong>Tiếp Theo</strong> và <strong>Tự Động</strong>
-          </p>
-          
-          <div className={styles.sliderContainer}>
-            <input
-              type="range"
-              min="3"
-              max="15"
-              step="0.5"
-              value={spinDuration}
-              onChange={(e) => setSpinDuration(parseFloat(e.target.value))}
-              className={styles.rangeInput}
-              disabled={!connected || state.status === 'spinning'}
-            />
-            <div className={styles.sliderLabels}>
-              <span>3s</span>
-              <span>9s</span>
-              <span>15s</span>
-            </div>
-          </div>
           
           <div className={styles.quickDurations}>
             {[3, 5, 7, 10].map(duration => (
@@ -408,19 +362,16 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
         </div>
 
         {/* Override Target */}
-        <div className={styles.settingGroup}>
+        <div className={styles.compactSettingRow}>
           <label className={styles.settingLabel}>
-            <Target size={18} />
-            <span>Ép kết quả (Director Mode)</span>
+            <Target size={16} />
+            <span>Ép kết quả</span>
           </label>
-          <p className={styles.settingDesc}>
-            Áp dụng cho: <strong>Quay</strong> và <strong>Tự Động</strong>
-          </p>
           
           <select
             value={overrideTarget}
             onChange={(e) => handleOverrideChange(e.target.value)}
-            className={styles.select}
+            className={styles.compactSelect}
             disabled={!connected}
           >
             <option value="">🎲 Ngẫu nhiên</option>
@@ -432,27 +383,25 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
           </select>
           
           {overrideTarget && (
-            <div className={styles.overridePreview}>
-              <span className={styles.overrideIcon}>🎯</span>
-              <span>Sẽ dừng tại: <strong>{judges.find(j => j.id === overrideTarget)?.name}</strong></span>
-            </div>
+            <span className={styles.overridePreviewInline}>
+              🎯 <strong>{judges.find(j => j.id === overrideTarget)?.name}</strong>
+            </span>
           )}
         </div>
       </div>
 
-      {/* ==================== ZONE 3: KẾT QUẢ VÒNG QUAY HOẶC KỊCH BẢN ==================== */}
+      {/* ==================== ZONE 3: KẾT QUẢ ==================== */}
       {state.targetId && (
-        <div className={styles.controlZone}>
-          {/* ✅ Nếu là chế độ SCRIPT, hiện script content */}
+        <div className={styles.compactZone}>
           {lastSpinMode === 'script' && state.script && state.script[state.currentStep] ? (
             <>
-              <h3 className={styles.zoneTitle}>
+              <h3 className={styles.compactZoneTitle}>
                 <span className={styles.scriptIcon}>📜</span>
                 <span>Kịch Bản Bước {state.currentStep + 1}</span>
               </h3>
 
-              <div className={styles.scriptDisplay}>
-                <div className={styles.scriptRow}>
+              <div className={styles.compactScriptDisplay}>
+                <div className={styles.compactScriptRow}>
                   <span className={styles.scriptLabel}>🎯 Giám khảo:</span>
                   <span className={styles.scriptValue}>
                     <strong>{judges.find(j => j.id === state.targetId)?.name}</strong>
@@ -460,35 +409,34 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
                 </div>
 
                 {state.script[state.currentStep].contestant && (
-                  <div className={styles.scriptRow}>
+                  <div className={styles.compactScriptRow}>
                     <span className={styles.scriptLabel}>👤 Thí sinh:</span>
                     <span className={styles.scriptValue}>
-                      <strong>{state.script[state.currentStep].contestant}</strong>
+                      {state.script[state.currentStep].contestant}
                     </span>
                   </div>
                 )}
 
                 {state.script[state.currentStep].question_content && (
-                  <div className={styles.scriptQuestionBox}>
+                  <div className={styles.compactScriptRow}>
                     <span className={styles.scriptLabel}>❓ Câu hỏi:</span>
-                    <p className={styles.scriptQuestionText}>
+                    <span className={styles.scriptValue}>
                       {state.script[state.currentStep].question_content}
-                    </p>
+                    </span>
                   </div>
                 )}
               </div>
             </>
           ) : (
             <>
-              {/* ✅ Nếu là chế độ MANUAL hoặc AUTO, chỉ hiện tên giám khảo được chọn */}
-              <h3 className={styles.zoneTitle}>
+              <h3 className={styles.compactZoneTitle}>
                 <span className={styles.spinResultIcon}>🎯</span>
-                <span>Kết Quả Vòng Quay</span>
+                <span>Kết Quả</span>
               </h3>
 
-              <div className={styles.scriptDisplay}>
-                <div className={styles.scriptRow}>
-                  <span className={styles.scriptLabel}>✨ Giám khảo được chọn:</span>
+              <div className={styles.compactScriptDisplay}>
+                <div className={styles.compactScriptRow}>
+                  <span className={styles.scriptLabel}>✨ Giám khảo:</span>
                   <span className={styles.scriptValue}>
                     <strong>{judges.find(j => j.id === state.targetId)?.name}</strong>
                   </span>
@@ -500,18 +448,16 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
       )}
 
       {/* ==================== ZONE 4: CHẾ ĐỘ TỰ ĐỘNG ==================== */}
-      <div className={styles.controlZone}>
-        <h3 className={styles.zoneTitle}>
-          <Zap size={20} />
-          <span>Chế Độ Tự Động</span>
+      <div className={styles.compactZone}>
+        <h3 className={styles.compactZoneTitle}>
+          <Zap size={18} />
+          <span>Tự Động</span>
         </h3>
 
-        <div className={styles.autoModeSection}>
+        <div className={styles.autoModeCompact}>
           <p className={styles.autoModeDesc}>
-            Vòng quay sẽ tự động quay liên tục, mỗi lượt <strong>{spinDuration}s</strong>
-            {overrideTarget && (
-              <span> và dừng tại <strong>{judges.find(j => j.id === overrideTarget)?.name}</strong></span>
-            )}
+            Quay liên tục mỗi lượt <strong>{spinDuration}s</strong>
+            {overrideTarget && <span> → <strong>{judges.find(j => j.id === overrideTarget)?.name}</strong></span>}
           </p>
 
           <button
@@ -521,12 +467,12 @@ const LiveControlSection: React.FC<LiveControlSectionProps> = ({
           >
             {autoMode ? (
               <>
-                <Pause size={20} />
+                <Pause size={18} />
                 <span>Dừng Tự Động</span>
               </>
             ) : (
               <>
-                <Zap size={20} />
+                <Zap size={18} />
                 <span>Bắt Đầu Tự Động</span>
               </>
             )}

@@ -9,8 +9,8 @@ interface JudgeItem {
   name: string;
   color?: string;
   imageUrl?: string;
-  contestant?: string;  // ✅ Added: Thí sinh
-  question?: string;    // ✅ Added: Câu hỏi
+  contestant?: string;
+  question?: string;
 }
 
 interface WheelProps {
@@ -32,9 +32,14 @@ const Wheel: React.FC<WheelProps> = ({
 }) => {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
+  const [wobbleOffset, setWobbleOffset] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const spinSpeedRef = useRef(0);
+  const velocityRef = useRef(0);
+  const stopRequestedRef = useRef(false);
+  const targetRotationRef = useRef<number | null>(null);
+  const decelerationPhaseRef = useRef(false);
 
   useEffect(() => {
     drawWheel();
@@ -48,7 +53,28 @@ const Wheel: React.FC<WheelProps> = ({
     }
   }, [isSpinning]);
 
-  const stopRequestedRef = useRef(false);
+  // Stop spinning
+  useEffect(() => {
+    if (isStopping && spinning && !stopRequestedRef.current) {
+      if (!targetId) {
+        console.warn('⚠️ Wheel: Stopping requested but targetId missing');
+        return;
+      }
+
+      console.log('🛑 Wheel: Stop requested for target:', targetId);
+      stopRequestedRef.current = true;
+      calculateStopPosition(targetId);
+    }
+  }, [isStopping, spinning, targetId]);
+
+  // Reset stop flag when not spinning
+  useEffect(() => {
+    if (!spinning) {
+      stopRequestedRef.current = false;
+      decelerationPhaseRef.current = false;
+      targetRotationRef.current = null;
+    }
+  }, [spinning]);
 
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
@@ -70,7 +96,7 @@ const Wheel: React.FC<WheelProps> = ({
       const startAngle = index * anglePerSegment - Math.PI / 2;
       const endAngle = startAngle + anglePerSegment;
 
-      // Segment
+      // Segment background
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -78,161 +104,196 @@ const Wheel: React.FC<WheelProps> = ({
       ctx.fillStyle = item.color || `hsl(${(index * 360) / items.length}, 75%, 55%)`;
       ctx.fill();
 
-      // Border
+      // Segment border
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
       ctx.stroke();
 
-      // Inner glow
-      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.7, centerX, centerY, radius);
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+      // Inner gradient for depth
+      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.5, centerX, centerY, radius);
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0.25)');
       ctx.fillStyle = gradient;
       ctx.fill();
 
-      // Text
+      // Text with better shadow
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(startAngle + anglePerSegment / 2);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Text shadow
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 6;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
       
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 18px "Segoe UI", Arial, sans-serif';
-      ctx.fillText(item.name, radius * 0.6, 0);
+      ctx.font = 'bold 20px "Segoe UI", Arial, sans-serif';
+      ctx.fillText(item.name, radius * 0.65, 0);
       ctx.restore();
     });
 
-    // Center circle with gradient
-    const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 50);
-    centerGradient.addColorStop(0, '#667eea');
-    centerGradient.addColorStop(1, '#764ba2');
+    // Center hub with 3D effect
+    const centerGradient = ctx.createRadialGradient(centerX, centerY - 5, 0, centerX, centerY, 60);
+    centerGradient.addColorStop(0, '#7c3aed');
+    centerGradient.addColorStop(0.5, '#6366f1');
+    centerGradient.addColorStop(1, '#4f46e5');
     
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 50, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, 60, 0, 2 * Math.PI);
     ctx.fillStyle = centerGradient;
     ctx.fill();
     
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 5;
     ctx.stroke();
 
-    // Center logo/text
+    // Center text
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 4;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 6;
     ctx.fillText('SPIN', centerX, centerY);
   }, [items]);
 
   const startInfiniteSpin = useCallback(() => {
     setSpinning(true);
+    decelerationPhaseRef.current = false;
     
-    let currentRotation = rotation;
-    spinSpeedRef.current = 20; // Initial speed
+    velocityRef.current = 5; // Start velocity
+    let lastTime = performance.now();
     
-    const animate = () => {
-      // Accelerate to max speed
-      if (spinSpeedRef.current < 30) {
-        spinSpeedRef.current += 0.5;
+    const animate = (currentTime: number) => {
+      const deltaTime = (currentTime - lastTime) / 16.67;
+      lastTime = currentTime;
+      
+      // ✅ ACCELERATION PHASE: Smooth ease-in
+      if (!decelerationPhaseRef.current) {
+        if (velocityRef.current < 25) {
+          velocityRef.current += 0.4 * deltaTime; // Gradual acceleration
+        }
+        
+        setRotation(prev => prev + velocityRef.current * deltaTime);
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        // ✅ DECELERATION PHASE: Handled by decelerateToTarget
+      }
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+  }, []);
+
+  const calculateStopPosition = useCallback((resolvedTargetId: string) => {
+    console.log('🎯 Wheel: Calculating stop position for:', resolvedTargetId);
+    
+    // Find target item
+    let targetIndex = items.findIndex(item => item.id === resolvedTargetId);
+    
+    if (targetIndex === -1) {
+      console.warn('⚠️ Wheel: Target not found, using random');
+      targetIndex = Math.floor(Math.random() * items.length);
+    }
+
+    const targetItem = items[targetIndex];
+    console.log('🎯 Wheel: Target item:', targetItem?.name, 'at index:', targetIndex);
+
+    const anglePerSegment = 360 / items.length;
+    
+    // ✅ NATURAL OFFSET: Random position within segment (not perfectly centered)
+    // Range: -40% to +40% of segment (more natural than exact center)
+    const naturalOffset = (Math.random() - 0.5) * anglePerSegment * 0.8;
+    
+    // ✅ EXTRA SPINS: Random 5-8 full rotations for dramatic effect
+    const extraSpins = 5 + Math.floor(Math.random() * 4);
+    
+    // Calculate target angle (pointer at top = 0°)
+    const normalizedRotation = ((rotation % 360) + 360) % 360;
+    const segmentCenterAngle = (targetIndex * anglePerSegment) + (anglePerSegment / 2);
+    const targetAngle = 360 - segmentCenterAngle + naturalOffset;
+    const targetAngleNormalized = ((targetAngle % 360) + 360) % 360;
+    
+    // Calculate final rotation
+    const baseRotation = rotation - normalizedRotation;
+    const finalRotation = baseRotation + (extraSpins * 360) + targetAngleNormalized;
+    
+    targetRotationRef.current = finalRotation;
+    
+    console.log('🎯 Wheel: Stop calculation:', {
+      targetIndex,
+      targetName: targetItem?.name,
+      extraSpins,
+      naturalOffset: naturalOffset.toFixed(2),
+      finalRotation: finalRotation.toFixed(2),
+      currentRotation: rotation.toFixed(2)
+    });
+
+    // Start deceleration
+    decelerationPhaseRef.current = true;
+    decelerateToTarget();
+  }, [items, rotation]);
+
+  const decelerateToTarget = useCallback(() => {
+    if (targetRotationRef.current === null) return;
+
+    const targetRotation = targetRotationRef.current;
+    const startRotation = rotation;
+    const startVelocity = velocityRef.current;
+    const startTime = performance.now();
+    
+    // ✅ DECELERATION DURATION: 4-6 seconds for realistic feel
+    const decelerationDuration = 4000 + Math.random() * 2000;
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / decelerationDuration, 1);
+      
+      // ✅ PHYSICS-BASED EASING: Custom cubic-bezier for realistic deceleration
+      // Simulates friction: fast at first, very slow at end
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      
+      const currentRotation = startRotation + (targetRotation - startRotation) * easeOutQuart;
+      setRotation(currentRotation);
+      
+      // ✅ WOBBLE EFFECT: Near the end, add slight oscillation (like real wheel)
+      if (progress > 0.85) {
+        const wobbleIntensity = (1 - progress) * 5; // Decrease as we approach stop
+        const wobble = Math.sin(progress * 30) * wobbleIntensity;
+        setWobbleOffset(wobble);
       }
       
-      currentRotation += spinSpeedRef.current;
-      setRotation(currentRotation % 360);
-      animationRef.current = requestAnimationFrame(animate);
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        // ✅ COMPLETE: Finalize stop
+        setWobbleOffset(0);
+        finalizeStop();
+      }
     };
     
     animationRef.current = requestAnimationFrame(animate);
   }, [rotation]);
 
-  const stopSpin = useCallback((targetIdOverride?: string) => {
-    // Cancel animation
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-
-    const resolvedTargetId = targetIdOverride || targetId;
-    console.log('🛑 Wheel stopSpin called with:', { targetId: resolvedTargetId, itemsLength: items.length });
-    console.log('🛑 Wheel: Items array:', items.map((i, idx) => ({ idx, id: i.id, name: i.name })));
-
-    // ✅ CRITICAL: Lấy target từ ID, không phải index!
-    // Vì items array có thể có thứ tự khác nhau ở khác nơi
-    let targetIndex = -1;
-    let targetItem: JudgeItem | undefined;
-
-    if (resolvedTargetId) {
-      targetItem = items.find(item => item.id === resolvedTargetId);
+  const finalizeStop = useCallback(() => {
+    setSpinning(false);
+    velocityRef.current = 0;
+    
+    if (targetId && onSpinComplete) {
+      const targetItem = items.find(item => item.id === targetId);
       if (targetItem) {
-        targetIndex = items.indexOf(targetItem);
-      } else {
-        console.warn('⚠️ Wheel: Target ID not found:', resolvedTargetId);
-      }
-    }
-
-    if (targetIndex === -1) {
-      console.warn('⚠️ Wheel: Falling back to random target');
-      targetIndex = Math.floor(Math.random() * items.length);
-      targetItem = items[targetIndex];
-    }
-
-    // ✅ CALCULATE ANGLE: Dùng targetIndex để tính angle
-    const anglePerSegment = 360 / items.length;
-
-    const extraSpins = 4;
-    const normalizedRotation = ((rotation % 360) + 360) % 360;
-    const stopAngleBase = 360 - (targetIndex * anglePerSegment) - (anglePerSegment / 2);
-    const targetStopAngle = ((stopAngleBase % 360) + 360) % 360;
-    const baseRotation = rotation + (360 - normalizedRotation);
-    const finalRotation = baseRotation + (extraSpins * 360) + targetStopAngle;
-
-    console.log('🎯 Wheel Stop:', {
-      targetId: resolvedTargetId,
-      targetIndex,
-      targetName: items[targetIndex]?.name,
-      targetStopAngle: targetStopAngle.toFixed(2),
-      finalRotation: finalRotation.toFixed(2)
-    });
-
-    setRotation(finalRotation);
-
-    // Call onSpinComplete after animation finishes
-    setTimeout(() => {
-      setSpinning(false);
-      if (onSpinComplete && targetItem) {
         console.log('✅ Wheel: Spin complete - Winner:', targetItem.name, 'ID:', targetItem.id);
-        onSpinComplete(targetItem); // Gửi item chính xác (từ targetId)
+        
+        // Delay callback for dramatic effect
+        setTimeout(() => {
+          onSpinComplete(targetItem);
+        }, 500);
       }
-    }, 5000);
-  }, [rotation, items, targetId, onSpinComplete]);
-
-  useEffect(() => {
-    if (isStopping && spinning && !stopRequestedRef.current) {
-      if (!targetId) {
-        console.warn('⚠️ Wheel: Stopping requested but targetId missing, waiting for server payload...');
-        return;
-      }
-
-      stopRequestedRef.current = true;
-      stopSpin(targetId);
     }
-  }, [isStopping, spinning, targetId, stopSpin]);
+  }, [items, targetId, onSpinComplete]);
 
-  useEffect(() => {
-    if (!spinning) {
-      stopRequestedRef.current = false;
-    }
-  }, [spinning]);
-
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
       if (animationRef.current) {
@@ -244,13 +305,13 @@ const Wheel: React.FC<WheelProps> = ({
   return (
     <div className={styles.wheelWrapper}>
       <div className={styles.wheelShadow}></div>
+      
+      {/* Wheel container with physics-based rotation */}
       <div 
         className={`${styles.wheelContainer} ${spinning ? styles.spinning : ''}`}
         style={{
           transform: `rotate(${rotation}deg)`,
-          transition: isStopping 
-            ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' 
-            : 'none'
+          transition: 'none' // All animations handled by JS for smooth physics
         }}
       >
         <canvas
@@ -261,8 +322,14 @@ const Wheel: React.FC<WheelProps> = ({
         />
       </div>
       
-      {/* Pointer with glow effect */}
-      <div className={styles.pointerContainer}>
+      {/* Pointer with wobble effect */}
+      <div 
+        className={styles.pointerContainer}
+        style={{
+          transform: `translateX(-50%) rotate(${wobbleOffset}deg)`,
+          transition: wobbleOffset !== 0 ? 'transform 0.1s ease-out' : 'none'
+        }}
+      >
         <div className={styles.pointerGlow}></div>
         <div className={styles.pointer}>▼</div>
       </div>

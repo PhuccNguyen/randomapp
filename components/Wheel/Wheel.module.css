@@ -9,15 +9,28 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto;
+  perspective: 1000px; /* ✅ 3D perspective */
 }
 
 .wheelShadow {
   position: absolute;
   inset: 10%;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.5) 0%, transparent 70%);
   border-radius: 50%;
-  filter: blur(40px);
+  filter: blur(50px);
   z-index: 0;
+  animation: shadowPulse 3s ease-in-out infinite;
+}
+
+@keyframes shadowPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
 .wheelContainer {
@@ -26,15 +39,19 @@
   height: 100%;
   border-radius: 50%;
   box-shadow: 
-    0 0 0 8px rgba(255, 255, 255, 0.1),
-    0 0 0 16px rgba(255, 255, 255, 0.05),
-    0 20px 60px rgba(0, 0, 0, 0.4),
-    inset 0 0 60px rgba(0, 0, 0, 0.3);
+    0 0 0 10px rgba(255, 255, 255, 0.1),
+    0 0 0 20px rgba(255, 255, 255, 0.05),
+    0 25px 70px rgba(0, 0, 0, 0.5),
+    inset 0 0 80px rgba(0, 0, 0, 0.4);
   z-index: 1;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  transform-style: preserve-3d; /* ✅ Enable 3D transforms */
 }
 
 .wheelContainer.spinning {
-  filter: brightness(1.2) saturate(1.3);
+  filter: brightness(1.3) saturate(1.4) drop-shadow(0 0 20px rgba(102, 126, 234, 0.5));
 }
 
 .canvas {
@@ -44,13 +61,16 @@
   display: block;
 }
 
+/* ✅ ENHANCED POINTER: Wobble effect support */
 .pointerContainer {
   position: absolute;
-  top: -20px;
+  top: -25px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
+  transform-origin: center bottom;
+  transition: transform 0.1s ease-out;
 }
 
 .pointerGlow {
@@ -58,59 +78,115 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.7) 0%, transparent 70%);
   border-radius: 50%;
-  filter: blur(20px);
-  animation: pointerPulse 2s ease-in-out infinite;
+  filter: blur(25px);
+  animation: pointerGlowPulse 2s ease-in-out infinite;
 }
 
-@keyframes pointerPulse {
+@keyframes pointerGlowPulse {
   0%, 100% {
-    opacity: 0.6;
+    opacity: 0.7;
     transform: translate(-50%, -50%) scale(1);
   }
   50% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.3);
   }
 }
 
 .pointer {
   position: relative;
-  font-size: 3rem;
+  font-size: 3.5rem;
   color: #ffd700;
   text-shadow: 
-    0 0 10px rgba(255, 215, 0, 0.8),
-    0 0 20px rgba(255, 215, 0, 0.6),
-    0 4px 8px rgba(0, 0, 0, 0.5);
-  animation: pointerBounce 1s ease-in-out infinite;
+    0 0 15px rgba(255, 215, 0, 0.9),
+    0 0 30px rgba(255, 215, 0, 0.7),
+    0 6px 12px rgba(0, 0, 0, 0.6);
+  animation: pointerFloat 2s ease-in-out infinite;
   z-index: 1;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 
-@keyframes pointerBounce {
+@keyframes pointerFloat {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
   }
 }
 
-/* Responsive */
+/* ✅ SPINNING STATE ENHANCEMENTS */
+.wheelContainer.spinning {
+  animation: spinGlow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes spinGlow {
+  from {
+    box-shadow: 
+      0 0 0 10px rgba(255, 255, 255, 0.1),
+      0 0 0 20px rgba(255, 255, 255, 0.05),
+      0 25px 70px rgba(0, 0, 0, 0.5),
+      inset 0 0 80px rgba(0, 0, 0, 0.4),
+      0 0 50px rgba(102, 126, 234, 0.3);
+  }
+  to {
+    box-shadow: 
+      0 0 0 10px rgba(255, 255, 255, 0.15),
+      0 0 0 20px rgba(255, 255, 255, 0.08),
+      0 25px 70px rgba(0, 0, 0, 0.5),
+      inset 0 0 80px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(102, 126, 234, 0.5);
+  }
+}
+
+/* ✅ DECORATIVE ELEMENTS */
+.wheelWrapper::before {
+  content: '';
+  position: absolute;
+  inset: -5%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.1) 25%,
+    transparent 50%,
+    rgba(118, 75, 162, 0.1) 75%,
+    transparent 100%
+  );
+  animation: rotate 20s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ✅ RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   .wheelWrapper {
     max-width: 500px;
   }
 
-  .canvas {
-    width: 100%;
-    height: 100%;
+  .pointer {
+    font-size: 3rem;
   }
 
-  .pointer {
-    font-size: 2.5rem;
+  .wheelContainer {
+    box-shadow: 
+      0 0 0 8px rgba(255, 255, 255, 0.1),
+      0 0 0 16px rgba(255, 255, 255, 0.05),
+      0 20px 50px rgba(0, 0, 0, 0.5),
+      inset 0 0 60px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -120,6 +196,20 @@
   }
 
   .pointer {
-    font-size: 2rem;
+    font-size: 2.5rem;
+  }
+
+  .pointerContainer {
+    top: -20px;
+  }
+}
+
+/* ✅ HIGH PERFORMANCE OPTIMIZATIONS */
+@media (prefers-reduced-motion: no-preference) {
+  .wheelContainer,
+  .pointer,
+  .pointerGlow,
+  .wheelShadow {
+    will-change: transform;
   }
 }

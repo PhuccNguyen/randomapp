@@ -1,0 +1,102 @@
+# Docker Compose cho TingRandom
+# Domain: random.tingnect.com
+# Chạy: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: tingrandom-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+      MONGO_INITDB_DATABASE: tingrandom
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    ports:
+      - "27017:27017"
+    networks:
+      - tingrandom-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # TingRandom App (Next.js + Socket.IO)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tingrandom-app
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      # MongoDB Connection
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongodb:27017/tingrandom?authSource=admin
+      
+      # NextAuth
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-generate-a-random-secret-key-here}
+      
+      # Google OAuth (nếu dùng)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      
+      # App Config
+      NODE_ENV: production
+      PORT: 3000
+      
+      # Domain (cho production)
+      DOMAIN: ${DOMAIN:-random.tingnect.com}
+    ports:
+      - "3000:3000"
+    networks:
+      - tingrandom-network
+    volumes:
+      - app_uploads:/app/public/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy (cho production với domain)
+  nginx:
+    image: nginx:alpine
+    container_name: tingrandom-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - tingrandom-network
+    profiles:
+      - production
+
+networks:
+  tingrandom-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  app_uploads:
+    driver: local
+  nginx_logs:
+    driver: local
