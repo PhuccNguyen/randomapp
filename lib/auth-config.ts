@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import User from "@/models/User";
+import connectDB from "@/lib/mongodb";
 
 // Check if Google OAuth credentials are properly configured
 const hasGoogleCredentials = 
@@ -50,16 +51,28 @@ export const authOptions: NextAuthOptions = {
     
     async signIn({ user, account, profile, email, credentials }) {
       try {
+        // Connect to database with timeout
+        await connectDB();
+        
         if (account?.provider === "google" && profile) {
+          console.log('🔍 Checking for existing Google user:', profile.email);
+          
           // Kiểm tra xem user Google đã tồn tại chưa
-          const existingUser = await User.findOne({
-            $or: [
-              { email: profile.email },
-              { googleId: profile.sub }
-            ]
-          });
+          const existingUser = await Promise.race([
+            User.findOne({
+              $or: [
+                { email: profile.email },
+                { googleId: profile.sub }
+              ]
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Database query timeout')), 8000)
+            )
+          ]);
           
           if (!existingUser) {
+            console.log('✅ Creating new Google user');
+            
             // Tạo username từ email hoặc Google name
             let username = profile.email?.split('@')[0] || profile.name?.toLowerCase().replace(/\s+/g, '');
             
@@ -84,25 +97,29 @@ export const authOptions: NextAuthOptions = {
               profileComplete: false,
               image: profile.image,
             });
+            
             await newUser.save();
             console.log('✅ New Google user created:', newUser._id);
-          } else if (!existingUser.googleId) {
-            // Link Google account với existing user
-            existingUser.googleId = profile.sub;
-            existingUser.provider = 'google';
-            if (!existingUser.image) {
-              existingUser.image = profile.image;
+          } else {
+            console.log('👤 Existing user found');
+            if (!existingUser.googleId) {
+              // Link Google account với existing user
+              existingUser.googleId = profile.sub;
+              existingUser.provider = 'google';
+              if (!existingUser.image) {
+                existingUser.image = profile.image;
+              }
+              await existingUser.save();
+              console.log('✅ Google account linked to user:', existingUser._id);
             }
-            await existingUser.save();
-            console.log('✅ Google account linked to user:', existingUser._id);
           }
           
           return true;
         }
         
         return true;
-      } catch (error) {
-        console.error('❌ Sign in error:', error);
+      } catch (error: any) {
+        console.error('❌ Sign in error:', error.message);
         return false;
       }
     },

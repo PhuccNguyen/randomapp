@@ -184,7 +184,7 @@ const UserSchema = new Schema<IUser>({
 });
 
 // ============== 3. INDEXES ==============
-UserSchema.index({ email: 1 });
+// Note: email index is created automatically by "unique: true" in schema
 UserSchema.index({ username: 1, sparse: true });
 UserSchema.index({ tier: 1, subscriptionStatus: 1 });
 UserSchema.index({ googleId: 1, sparse: true });
