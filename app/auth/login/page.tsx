@@ -25,14 +25,17 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   // Redirect nếu đã login
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
+    if (status === 'authenticated' && session?.user && !hasRedirected) {
+      setHasRedirected(true);
       const redirect = searchParams.get('redirect') || '/control';
-      router.push(redirect);
+      // Use replace để tránh back button
+      router.replace(redirect);
     }
-  }, [status, session, router, searchParams]);
+  }, [status, session, router, searchParams, hasRedirected]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,20 +86,34 @@ export default function LoginPage() {
   
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
+    setError('');
     try {
-      const redirect = searchParams.get('redirect') || '/control';
+      const redirectPath = searchParams.get('redirect') || '/control';
+      
+      // Sử dụng signIn với redirect: false
+      // Chúng tôi sẽ xử lý redirect thủ công
       const result = await signIn('google', {
-        callbackUrl: redirect,
-        redirect: true
+        redirect: false,
       });
       
+      console.log('Google sign in result:', result);
+      
       if (result?.error) {
-        setError(result.error);
+        console.error('Google sign in error:', result.error);
+        setError(result.error === 'AccessDenied' ? 'Bạn đã từ chối quyền truy cập' : `Lỗi: ${result.error}`);
+        setIsGoogleLoading(false);
+      } else if (result?.ok) {
+        console.log('✅ Google sign in successful, redirecting to:', redirectPath);
+        // Redirect thủ công để đảm bảo user được đưa đến đúng trang
+        // Dùng window.location thay vì router.push để force refresh
+        window.location.href = redirectPath;
+      } else {
+        setError('Không thể đăng nhập bằng Google. Vui lòng thử lại.');
+        setIsGoogleLoading(false);
       }
     } catch (error) {
       console.error('Google login error:', error);
-      setError('Không thể đăng nhập bằng Google');
-    } finally {
+      setError('Không thể kết nối đến Google. Vui lòng kiểm tra kết nối internet.');
       setIsGoogleLoading(false);
     }
   };

@@ -100,6 +100,8 @@ export const authOptions: NextAuthOptions = {
             
             await newUser.save();
             console.log('✅ New Google user created:', newUser._id);
+            // Đảm bảo return true để cho phép login
+            return true;
           } else {
             console.log('👤 Existing user found');
             if (!existingUser.googleId) {
@@ -112,9 +114,8 @@ export const authOptions: NextAuthOptions = {
               await existingUser.save();
               console.log('✅ Google account linked to user:', existingUser._id);
             }
+            return true;
           }
-          
-          return true;
         }
         
         return true;
@@ -127,10 +128,19 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',
+    newUser: '/auth/complete-profile',
   },
   session: {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   secret: process.env.NEXTAUTH_SECRET,
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      console.log('📝 SignIn event - user:', user.email, 'isNewUser:', isNewUser);
+    },
+    async session({ session, token }) {
+      console.log('📝 Session event - session updated for:', session.user?.email);
+    }
+  }
 };
