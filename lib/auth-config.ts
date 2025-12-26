@@ -80,16 +80,28 @@ export const authOptions: NextAuthOptions = {
           });
           
           if (!existingUser) {
+            // Tạo username từ email hoặc Google name
+            let username = profile.email?.split('@')[0] || profile.name?.toLowerCase().replace(/\s+/g, '');
+            
+            // Đảm bảo username unique
+            let counter = 0;
+            let uniqueUsername = username;
+            while (await User.findOne({ username: uniqueUsername })) {
+              counter++;
+              uniqueUsername = `${username}${counter}`;
+            }
+            
             // Tạo user mới từ Google profile
             const newUser = new User({
               name: profile.name || profile.email?.split('@')[0],
               email: profile.email,
+              username: uniqueUsername,
               googleId: profile.sub,
               provider: 'google',
               tier: 'PERSONAL',
               isActive: true,
               emailVerified: new Date(),
-              profileComplete: false, // User cần điền thêm thông tin
+              profileComplete: false,
               image: profile.image,
             });
             await newUser.save();
