@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Loader2, Play, Monitor, Copy, Check } from 'lucide-react';
 import ControlPanel from '@/components/ControlPanel/ControlPanel';
 import Header from '@/components/Header/Header';
@@ -21,6 +22,7 @@ function ControlContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const campaignId = searchParams.get('id');
+  const { data: session, status } = useSession();
   
   // State Management
   const [campaign, setCampaign] = useState<any>(null); // Detail campaign
@@ -29,8 +31,18 @@ function ControlContent() {
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // --- 2. DATA FETCHING (Automation Logic) ---
+  // --- 2. AUTH CHECK - Redirect if not authenticated ---
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login?redirect=/control');
+    }
+  }, [status, router]);
+
+  // --- 3. DATA FETCHING ---
+  useEffect(() => {
+    // Chỉ fetch khi đã xác thực
+    if (status !== 'authenticated') return;
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -73,9 +85,9 @@ function ControlContent() {
     };
 
     fetchData();
-  }, [campaignId]);
+  }, [campaignId, status]);
 
-  // --- 3. UTILITY FUNCTIONS ---
+  // --- 4. UTILITY FUNCTIONS ---
   const handleCopyLink = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const url = `${window.location.origin}/display?id=${id}`;
@@ -84,7 +96,32 @@ function ControlContent() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // --- 4. RENDER STATES ---
+  // --- 5. RENDER STATES ---
+
+  // State: Authenticating
+  if (status === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 size={48} className="text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-medium">Đang kiểm tra xác thực...</p>
+      </div>
+    );
+  }
+
+  // State: Not authenticated (should redirect but show just in case)
+  if (status === 'unauthenticated') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="text-red-500 text-xl font-bold">⚠️ Bạn chưa đăng nhập</div>
+        <button 
+          onClick={() => router.push('/auth/login?redirect=/control')}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Đăng Nhập
+        </button>
+      </div>
+    );
+  }
 
   // State: Loading
   if (loading) {

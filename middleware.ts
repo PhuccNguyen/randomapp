@@ -13,26 +13,31 @@ const protectedRoutes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // --- DEBUG MODE: BẬT ---
-  // Hiện tại chúng ta cho phép mọi request đi qua để đảm bảo tính năng Login hoạt động trơn tru.
-  // Sau khi Login và Backend ổn định, ta sẽ uncomment đoạn logic bảo vệ dưới đây.
+  // --- BẢO VỆ CÁC ROUTE YÊU CẦU XÁC THỰC ---
+  const protectedPageRoutes = [
+    '/campaign',
+    '/control',
+    '/dashboard',
+    '/profile',
+  ];
 
-  /*
-  // Logic bảo vệ API (Tạm tắt)
-  if (pathname.startsWith('/api/campaigns')) {
-    const token = request.cookies.get('token')?.value || 
-                  request.headers.get('authorization')?.replace('Bearer ', '');
+  // Kiểm tra xem đây có phải route bảo vệ không
+  const isProtectedRoute = protectedPageRoutes.some(route => pathname.startsWith(route));
+  
+  if (isProtectedRoute) {
+    // Kiểm tra token
+    const token = request.cookies.get('auth-token')?.value || 
+                  request.headers.get('authorization')?.replace('Bearer ', '') ||
+                  request.cookies.get('token')?.value;
     
     if (!token) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      // Redirect sang login nếu không có token
+      const loginUrl = new URL('/auth/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
-  */
 
-  // Cho phép request đi tiếp
   return NextResponse.next();
 }
 
