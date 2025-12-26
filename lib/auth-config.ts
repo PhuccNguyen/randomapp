@@ -1,22 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { MongoClient } from "mongodb";
 import User from "@/models/User";
-
-let cachedClient: any;
-let cachedPromise: any;
-
-async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedPromise;
-  }
-  cachedClient = new MongoClient(process.env.MONGODB_URI!);
-  cachedPromise = cachedClient.connect();
-  return cachedPromise;
-}
-
-const clientPromise = connectToDatabase();
 
 // Check if Google OAuth credentials are properly configured
 const hasGoogleCredentials = 
@@ -26,7 +10,6 @@ const hasGoogleCredentials =
   !process.env.GOOGLE_CLIENT_SECRET.includes('your-google-client-secret');
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise),
   providers: [
     // Google OAuth Provider
     ...(hasGoogleCredentials ? [
@@ -67,9 +50,6 @@ export const authOptions: NextAuthOptions = {
     
     async signIn({ user, account, profile, email, credentials }) {
       try {
-        // Ensure database connection
-        const { db } = await clientPromise;
-        
         if (account?.provider === "google" && profile) {
           // Kiểm tra xem user Google đã tồn tại chưa
           const existingUser = await User.findOne({
