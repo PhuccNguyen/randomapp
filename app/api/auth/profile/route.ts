@@ -82,7 +82,7 @@ export async function PUT(request: NextRequest) {
 
     // Get request body
     const body = await request.json();
-    const { name, username, phone, companyName, companySize, industry } = body;
+    const { name, username, phone, address, city, country, companyName, companySize, industry } = body;
 
     // Find user
     const user = await User.findById(payload.userId);
@@ -110,9 +110,15 @@ export async function PUT(request: NextRequest) {
       }
     }
     if (phone !== undefined) user.phone = phone;
+    if (address !== undefined) user.address = address;
+    if (city !== undefined) user.city = city;
+    if (country !== undefined) user.country = country;
     if (companyName !== undefined) user.companyName = companyName;
     if (companySize !== undefined) user.companySize = companySize;
     if (industry !== undefined) user.industry = industry;
+    
+    // Mark profile as complete
+    user.profileComplete = true;
 
     await user.save();
 
@@ -127,11 +133,15 @@ export async function PUT(request: NextRequest) {
         username: updatedUser.username,
         name: updatedUser.name,
         email: updatedUser.email,
-        tier: updatedUser.tier,
         phone: updatedUser.phone,
+        address: updatedUser.address,
+        city: updatedUser.city,
+        country: updatedUser.country,
+        tier: updatedUser.tier,
         companyName: updatedUser.companyName,
         companySize: updatedUser.companySize,
         industry: updatedUser.industry,
+        profileComplete: updatedUser.profileComplete,
         campaignsCount: updatedUser.campaignsCount,
         createdAt: updatedUser.createdAt,
         lastLoginAt: updatedUser.lastLoginAt

@@ -7,10 +7,18 @@ import { UserTier, SubscriptionStatus, TIER_LIMITS } from '@/lib/user-types';
 
 export interface IUser extends Document {
   email: string;
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
   name: string;
   phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  image?: string;
+  
+  // OAuth Fields
+  provider?: string; // 'google', 'email'
+  googleId?: string;
   
   // Business Fields
   tier: UserTier;
@@ -29,10 +37,12 @@ export interface IUser extends Document {
   campaignsCount: number;
   isActive: boolean;
   isEmailVerified: boolean;
+  emailVerified?: Date;
   emailVerificationToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpiresAt?: Date;
   lastLoginAt?: Date;
+  profileComplete?: boolean;
   
   // Timestamps
   createdAt: Date;
@@ -62,17 +72,16 @@ const UserSchema = new Schema<IUser>({
   },
   username: {
     type: String,
-    required: [true, 'Username is required'],
     unique: true,
+    sparse: true, // Cho phép null cho OAuth users
     trim: true,
     minlength: [3, 'Username must be at least 3 characters'],
     maxlength: [30, 'Username cannot exceed 30 characters']
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters'],
-    select: false // SECURITY: Không bao giờ trả về password trừ khi gọi .select('+password')
+    select: false
   },
   name: {
     type: String,
@@ -83,6 +92,35 @@ const UserSchema = new Schema<IUser>({
     type: String,
     trim: true
   },
+  address: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
+  country: {
+    type: String,
+    trim: true
+  },
+  image: {
+    type: String,
+    trim: true
+  },
+  
+  // OAuth Fields
+  provider: {
+    type: String,
+    enum: ['google', 'email', 'github'],
+    default: 'email'
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  
   tier: {
     type: String,
     enum: Object.values(UserTier),
@@ -91,7 +129,7 @@ const UserSchema = new Schema<IUser>({
   subscriptionStatus: {
     type: String,
     enum: Object.values(SubscriptionStatus),
-    default: SubscriptionStatus.ACTIVE // Dev Mode: Mặc định Active để test dễ dàng
+    default: SubscriptionStatus.ACTIVE
   },
   trialUsed: {
     type: Boolean,
@@ -101,7 +139,7 @@ const UserSchema = new Schema<IUser>({
   trialEndsAt: { type: Date },
   subscriptionEndsAt: {
     type: Date,
-    default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // Default 1 year
+    default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
   },
   companyName: String,
   companySize: String,
@@ -118,21 +156,25 @@ const UserSchema = new Schema<IUser>({
     type: Boolean,
     default: false
   },
+  emailVerified: Date,
   emailVerificationToken: String,
   resetPasswordToken: String,
   resetPasswordExpiresAt: Date,
-  lastLoginAt: Date
+  lastLoginAt: Date,
+  profileComplete: {
+    type: Boolean,
+    default: false
+  }
 }, {
   timestamps: true,
   collection: 'users',
-  // AUTOMATION: Tự động xóa field nhạy cảm khi convert sang JSON
   toJSON: {
     virtuals: true,
     transform: function(doc, ret) {
-      ret.id = ret._id.toString(); // Convert to string and assign to id
-      delete ret._id; // Then delete _id
+      ret.id = ret._id.toString();
+      delete ret._id;
       delete ret.__v;
-      delete ret.password; // An toàn tuyệt đối
+      delete ret.password;
       delete ret.emailVerificationToken;
       delete ret.resetPasswordToken;
       return ret;
