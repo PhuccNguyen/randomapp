@@ -7,18 +7,10 @@ import { UserTier, SubscriptionStatus, TIER_LIMITS } from '@/lib/user-types';
 
 export interface IUser extends Document {
   email: string;
-  username?: string;
-  password?: string;
+  username: string;
+  password: string;
   name: string;
   phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  image?: string;
-  
-  // OAuth Fields
-  provider?: string; // 'google', 'email'
-  googleId?: string;
   
   // Business Fields
   tier: UserTier;
@@ -37,12 +29,10 @@ export interface IUser extends Document {
   campaignsCount: number;
   isActive: boolean;
   isEmailVerified: boolean;
-  emailVerified?: Date;
   emailVerificationToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpiresAt?: Date;
   lastLoginAt?: Date;
-  profileComplete?: boolean;
   
   // Timestamps
   createdAt: Date;
@@ -72,16 +62,17 @@ const UserSchema = new Schema<IUser>({
   },
   username: {
     type: String,
+    required: [true, 'Username is required'],
     unique: true,
-    sparse: true, // Cho phép null cho OAuth users
     trim: true,
     minlength: [3, 'Username must be at least 3 characters'],
     maxlength: [30, 'Username cannot exceed 30 characters']
   },
   password: {
     type: String,
+    required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters'],
-    select: false
+    select: false // SECURITY: Không bao giờ trả về password trừ khi gọi .select('+password')
   },
   name: {
     type: String,
@@ -92,35 +83,6 @@ const UserSchema = new Schema<IUser>({
     type: String,
     trim: true
   },
-  address: {
-    type: String,
-    trim: true
-  },
-  city: {
-    type: String,
-    trim: true
-  },
-  country: {
-    type: String,
-    trim: true
-  },
-  image: {
-    type: String,
-    trim: true
-  },
-  
-  // OAuth Fields
-  provider: {
-    type: String,
-    enum: ['google', 'email', 'github'],
-    default: 'email'
-  },
-  googleId: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
-  
   tier: {
     type: String,
     enum: Object.values(UserTier),
@@ -129,7 +91,7 @@ const UserSchema = new Schema<IUser>({
   subscriptionStatus: {
     type: String,
     enum: Object.values(SubscriptionStatus),
-    default: SubscriptionStatus.ACTIVE
+    default: SubscriptionStatus.ACTIVE // Dev Mode: Mặc định Active để test dễ dàng
   },
   trialUsed: {
     type: Boolean,
@@ -139,7 +101,7 @@ const UserSchema = new Schema<IUser>({
   trialEndsAt: { type: Date },
   subscriptionEndsAt: {
     type: Date,
-    default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // Default 1 year
   },
   companyName: String,
   companySize: String,
@@ -156,25 +118,21 @@ const UserSchema = new Schema<IUser>({
     type: Boolean,
     default: false
   },
-  emailVerified: Date,
   emailVerificationToken: String,
   resetPasswordToken: String,
   resetPasswordExpiresAt: Date,
-  lastLoginAt: Date,
-  profileComplete: {
-    type: Boolean,
-    default: false
-  }
+  lastLoginAt: Date
 }, {
   timestamps: true,
   collection: 'users',
+  // AUTOMATION: Tự động xóa field nhạy cảm khi convert sang JSON
   toJSON: {
     virtuals: true,
     transform: function(doc, ret) {
-      ret.id = ret._id.toString();
-      delete ret._id;
+      ret.id = ret._id.toString(); // Convert to string and assign to id
+      delete ret._id; // Then delete _id
       delete ret.__v;
-      delete ret.password;
+      delete ret.password; // An toàn tuyệt đối
       delete ret.emailVerificationToken;
       delete ret.resetPasswordToken;
       return ret;
@@ -184,10 +142,9 @@ const UserSchema = new Schema<IUser>({
 });
 
 // ============== 3. INDEXES ==============
-// Note: email index is created automatically by "unique: true" in schema
-UserSchema.index({ username: 1, sparse: true });
+UserSchema.index({ email: 1 });
+UserSchema.index({ username: 1 });
 UserSchema.index({ tier: 1, subscriptionStatus: 1 });
-UserSchema.index({ googleId: 1, sparse: true });
 
 // ============== 4. MIDDLEWARE (HOOKS) ==============
 

@@ -125,6 +125,12 @@ const nextConfig = {
   // 8. Compression and Performance
   compress: true,
   poweredByHeader: false,
+
+  // 9. Internationalization support
+  i18n: {
+    locales: ['vi', 'en'],
+    defaultLocale: 'vi',
+  },
 };
 
 export default nextConfig;

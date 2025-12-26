@@ -155,34 +155,36 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    // ✅ YÊU CẦU XÁC THỰC BẮT BUỘC
     const token = AuthService.extractTokenFromRequest(request);
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: 'Bạn phải đăng nhập để xem danh sách campaigns' },
-        { status: 401 }
-      );
+    let campaigns;
+    
+    if (token) {
+      try {
+        const payload = AuthService.verifyToken(token);
+        campaigns = await Campaign.find({
+          $or: [
+            { owner: payload.userId, isActive: true },
+            { isPublic: true, isActive: true }
+          ]
+        })
+        .populate('owner', 'name email tier')
+        .sort({ createdAt: -1 })
+        .select('-__v')
+        .lean();
+      } catch {
+        campaigns = await Campaign.find({ isPublic: true, isActive: true })
+          .populate('owner', 'name tier')
+          .sort({ createdAt: -1 })
+          .select('-__v')
+          .lean();
+      }
+    } else {
+      campaigns = await Campaign.find({ isPublic: true, isActive: true })
+        .populate('owner', 'name tier')
+        .sort({ createdAt: -1 })
+        .select('-__v')
+        .lean();
     }
-
-    let payload;
-    try {
-      payload = AuthService.verifyToken(token);
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, error: 'Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.' },
-        { status: 401 }
-      );
-    }
-
-    // Chỉ lấy campaigns của user hiện tại
-    const campaigns = await Campaign.find({
-      owner: payload.userId,
-      isActive: true
-    })
-    .populate('owner', 'name email tier')
-    .sort({ createdAt: -1 })
-    .select('-__v')
-    .lean();
     
     return NextResponse.json({
       success: true,

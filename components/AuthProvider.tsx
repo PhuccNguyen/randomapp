@@ -10,11 +10,7 @@ export default function AuthProvider({
   session: any;
 }) {
   return (
-    <SessionProvider 
-      session={session}
-      refetchInterval={5 * 60}
-      refetchOnWindowFocus={true}
-    >
+    <SessionProvider session={session}>
       {children}
     </SessionProvider>
   );
