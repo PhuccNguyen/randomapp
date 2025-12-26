@@ -13,6 +13,9 @@ interface WheelItem {
   name: string;
   color: string;
   probability?: number;
+  imageUrl?: string;
+  contestant?: string;
+  question?: string;
 }
 
 interface Campaign {
@@ -33,6 +36,9 @@ interface Winner {
   name: string;
   color: string;
   timestamp: number;
+  contestant?: string;
+  question?: string;
+  imageUrl?: string;
 }
 
 function GuestDisplayContent() {
@@ -52,6 +58,8 @@ function GuestDisplayContent() {
   const [showWinner, setShowWinner] = useState(false);
   const [history, setHistory] = useState<Winner[]>([]);
   const [spinCount, setSpinCount] = useState(0);
+  const [fullyStoppedId, setFullyStoppedId] = useState<string | null>(null); // BGK đã dừng hoàn toàn
+  const [scriptInfo, setScriptInfo] = useState<{ contestant?: string; question?: string } | null>(null);
   const confettiRef = useRef<HTMLDivElement>(null);
 
   // Fetch campaign data
@@ -127,24 +135,49 @@ function GuestDisplayContent() {
       console.log('📡 State update:', data);
       
       if (data.status === 'spinning') {
+        console.log('🔄 Status: SPINNING - Data:', data);
         setSpinning(true);
         setStopping(false);
         setShowWinner(false);
         setWinner(null);
-        setTargetId(data.targetId || null);
+        setFullyStoppedId(null);
+        // Lưu script info nếu có trong spinning state
+        if (data.scriptInfo) {
+          console.log('🎰 Display: Received scriptInfo during SPIN:', data.scriptInfo);
+          console.log('🎰 ScriptInfo question:', data.scriptInfo.question);
+          setScriptInfo(data.scriptInfo);
+        } else {
+          console.log('🎰 Display: NO scriptInfo in SPIN status');
+          setScriptInfo(null);
+        }
         setSpinCount(prev => prev + 1);
       } else if (data.status === 'stopped') {
+        console.log('⏹️ Status: STOPPED - Data:', data);
         setStopping(true);
         setSpinning(false);
+        if (data.targetId) {
+          setTargetId(data.targetId);
+        }
+        // Lưu script info nếu có
+        if (data.scriptInfo) {
+          console.log('🎰 Display: Received scriptInfo during STOPPED:', data.scriptInfo);
+          console.log('🎰 ScriptInfo question:', data.scriptInfo.question);
+          setScriptInfo(data.scriptInfo);
+        } else {
+          console.log('🎰 Display: NO scriptInfo in STOPPED status');
+        }
       } else if (data.status === 'idle') {
+        console.log('⏸️ Status: IDLE');
         setSpinning(false);
         setStopping(false);
         setTargetId(null);
       }
-      
-      if (data.targetId) {
-        setTargetId(data.targetId);
-      }
+    });
+    
+    // Lắng nghe event override riêng nhưng không hiển thị ngay
+    newSocket.on('override:target', (data: any) => {
+      console.log('🎯 Override target set (hidden):', data.targetId);
+      // Không set state ở đây, chỉ backend giữ thông tin
     });
 
     setSocket(newSocket);
@@ -155,18 +188,41 @@ function GuestDisplayContent() {
   }, [campaignId, campaign?._id]);
 
   // Handle spin complete
-  const handleSpinComplete = useCallback((result: WheelItem) => {
+  const handleSpinComplete = useCallback((result: any) => {
     console.log('🎉 Winner:', result.name);
+    console.log('🎉 ScriptInfo state:', scriptInfo);
+    console.log('🎉 Result data:', result);
+    console.log('🎉 Result contestant:', result.contestant);
+    console.log('🎉 Result question:', result.question);
     
     const newWinner: Winner = {
       id: result.id,
       name: result.name,
-      color: result.color,
-      timestamp: Date.now()
+      color: result.color || '#667eea',
+      timestamp: Date.now(),
+      contestant: scriptInfo?.contestant || result.contestant,
+      question: scriptInfo?.question || result.question,
+      imageUrl: result.imageUrl
     };
+    
+    console.log('🎉 Final winner object:', newWinner);
+    console.log('🎉 Winner question value:', newWinner.question);
+    console.log('🎉 Winner question boolean check:', !!newWinner.question);
     
     setWinner(newWinner);
     setHistory(prev => [newWinner, ...prev].slice(0, 10));
+    
+    // Set fullyStoppedId sau khi vòng quay đã dừng hoàn toàn
+    setFullyStoppedId(result.id);
+    
+    // Gửi kết quả về server để lưu vào history
+    if (socket && campaignId) {
+      socket.emit('report:result', {
+        campaignId: campaignId,
+        result: result.name,
+        targetId: result.id
+      });
+    }
     
     // Show winner animation
     setTimeout(() => {
@@ -174,7 +230,7 @@ function GuestDisplayContent() {
       triggerConfetti();
       playWinnerSound();
     }, 500);
-  }, []);
+  }, [socket, campaignId, scriptInfo]);
 
   // Confetti effect
   const triggerConfetti = () => {
@@ -373,14 +429,14 @@ function GuestDisplayContent() {
             {campaign.items.map((item, index) => (
               <div 
                 key={item.id} 
-                className={`${styles.participantItem} ${targetId === item.id ? styles.participantHighlight : ''}`}
+                className={`${styles.participantItem} ${fullyStoppedId === item.id ? styles.participantHighlight : ''}`}
               >
                 <div 
                   className={styles.participantColor}
                   style={{ backgroundColor: item.color }}
                 ></div>
                 <span className={styles.participantName}>{item.name}</span>
-                {targetId === item.id && (
+                {fullyStoppedId === item.id && (
                   <span className={styles.participantBadge}>🎯</span>
                 )}
               </div>
@@ -390,31 +446,66 @@ function GuestDisplayContent() {
       </div>
 
       {/* Winner Modal */}
-      {showWinner && winner && (
-        <div className={styles.winnerModal}>
-          <div className={styles.winnerOverlay} onClick={() => setShowWinner(false)}></div>
-          <div className={styles.winnerContent}>
-            <div className={styles.winnerIcon}>
-              <Crown size={80} />
-              <div className={styles.winnerGlow}></div>
-            </div>
-            <h2 className={styles.winnerTitle}>Chúc Mừng!</h2>
-            <div 
-              className={styles.winnerName}
-              style={{ color: winner.color }}
-            >
-              {winner.name}
-            </div>
-            <p className={styles.winnerSubtext}>đã trúng thưởng!</p>
-            <button 
-              className={styles.winnerCloseButton}
-              onClick={() => setShowWinner(false)}
-            >
-              Đóng
-            </button>
+{showWinner && winner && (
+  <div className={styles.winnerModal}>
+    <div className={styles.winnerOverlay} onClick={() => setShowWinner(false)}></div>
+    <div className={styles.winnerContent}>
+      <div className={styles.winnerIcon}>
+        <Crown size={80} />
+        <div className={styles.winnerGlow}></div>
+      </div>
+      
+      <h2 className={styles.winnerTitle}>Chúc Mừng!</h2>
+      
+      {/* Contestant Info from Script */}
+      {winner.contestant && (
+        <div className={styles.winnerContestant}>
+          <span className={styles.winnerLabel}>Thí sinh</span>
+          <span className={styles.winnerContestantName}>{winner.contestant}</span>
+        </div>
+      )}
+      
+      {/* Winner Image */}
+      {winner.imageUrl && (
+        <div className={styles.winnerImageContainer}>
+          <img 
+            src={winner.imageUrl} 
+            alt={winner.name}
+            className={styles.winnerImage}
+          />
+        </div>
+      )}
+      
+      {/* Winner Name */}
+      <div 
+        className={styles.winnerName}
+        style={{ color: winner.color }}
+      >
+        {winner.name}
+      </div>
+      
+      <p className={styles.winnerSubtext}>đã được chọn!</p>
+      
+      {/* Question from Script */}
+      {winner.question && (
+        <div className={styles.winnerQuestion}>
+          <div className={styles.questionIcon}>❓</div>
+          <div className={styles.questionContent}>
+            <span className={styles.questionLabel}>Câu hỏi:</span>
+            <p className={styles.questionText}>{winner.question}</p>
           </div>
         </div>
       )}
+      
+      <button 
+        className={styles.winnerCloseButton}
+        onClick={() => setShowWinner(false)}
+      >
+        Tiếp tục
+      </button>
+    </div>
+  </div>
+)}
 
       {/* Footer */}
       <footer className={styles.footer}>

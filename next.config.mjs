@@ -3,7 +3,7 @@ const nextConfig = {
   // 1. Tắt Strict Mode (Performance & Socket Optimization)
   reactStrictMode: false,
 
-  // 2. Cấu hình Image (Growth Hacking: Load ảnh từ mọi nguồn)
+  // 2. Cấu hình Image (Growth Hacking: Load ảnh từ mọi nguồn + SEO Optimization)
   images: {
     remotePatterns: [
       {
@@ -11,6 +11,9 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   // 3. Cấu hình Mongoose cho Next.js 14 (FIX LỖI CẢNH BÁO TẠI ĐÂY)
@@ -41,6 +44,92 @@ const nextConfig = {
       };
     }
     return config;
+  },
+
+  // 5. Headers for SEO & Security
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+        ],
+      },
+      {
+        source: '/sitemap.xml',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/xml'
+          }
+        ]
+      },
+      {
+        source: '/robots.txt',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/plain'
+          }
+        ]
+      }
+    ];
+  },
+
+  // 6. Redirects for SEO
+  async redirects() {
+    return [
+      {
+        source: '/index',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
+
+  // 7. Rewrites for clean URLs
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/sitemap.xml',
+          destination: '/api/sitemap',
+        },
+        {
+          source: '/robots.txt',
+          destination: '/api/robots',
+        },
+      ],
+    };
+  },
+
+  // 8. Compression and Performance
+  compress: true,
+  poweredByHeader: false,
+
+  // 9. Internationalization support
+  i18n: {
+    locales: ['vi', 'en'],
+    defaultLocale: 'vi',
   },
 };
 

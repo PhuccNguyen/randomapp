@@ -1,108 +1,165 @@
-// components/ControlPanel/hooks/useSocket.ts
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { ControlState } from '../types';
+// C:\Users\Nguyen Phuc\Web\tingrandom\components\ControlPanel\hooks\useSocket.ts
+'use client';
 
-export const useSocket = (campaignId: string) => {
+import { useEffect, useState, useCallback } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { ControlState, HistoryItem, DirectorScript } from '../types';
+
+interface UseSocketReturn {
+  connected: boolean;
+  state: ControlState;
+  triggerSpin: (spinDuration?: number) => void;
+  triggerStop: () => void;
+  triggerNext: () => void;
+  overrideTarget: (targetId: string) => void;
+  updateScript: (script: DirectorScript[]) => void;
+  startAutoSpin: (duration: number) => void;
+  stopAutoSpin: () => void;
+  setStep: (stepIndex: number) => void;
+}
+
+export const useSocket = (campaignId: string): UseSocketReturn => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [state, setState] = useState<ControlState>({
     status: 'idle',
     currentStep: 0,
-    history: []
+    targetId: undefined,
+    history: [],
+    spinDuration: 5,
+    script: []
   });
 
-  const socketRef = useRef<Socket | null>(null);
-
   useEffect(() => {
-    console.log('🔧 Control Panel: Initializing socket for campaign:', campaignId);
-    
-    // ✅ Connect to custom server with Socket.IO
-    const socketInstance = io('http://localhost:3000', {
-      path: '/socket.io', // ✅ Standard Socket.IO path
+    const newSocket = io('http://localhost:3000', {
+      path: '/socket.io',
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 10
     });
 
-    socketInstance.on('connect', () => {
-      console.log('✅ Control Panel: Socket connected:', socketInstance.id);
+    newSocket.on('connect', () => {
+      console.log('✅ Control: Socket connected:', newSocket.id);
       setConnected(true);
-      
-      // Join campaign room
-      console.log('📌 Control Panel: Joining room:', campaignId);
-      socketInstance.emit('join', campaignId);
+      newSocket.emit('join', campaignId);
     });
 
-    socketInstance.on('disconnect', () => {
-      console.log('❌ Socket disconnected');
+    newSocket.on('disconnect', () => {
+      console.log('❌ Control: Socket disconnected');
       setConnected(false);
     });
 
-    socketInstance.on('connect_error', (error) => {
-      console.error('🔴 Socket connection error:', error);
-      setConnected(false);
+    newSocket.on('state:update', (data: Partial<ControlState>) => {
+      console.log('📡 Control: State update:', data);
+      setState(prev => ({ ...prev, ...data }));
     });
 
-    socketInstance.on('state:update', (newState: Partial<ControlState>) => {
-      console.log('📡 State update received:', newState);
+    newSocket.on('history:add', (item: HistoryItem) => {
+      console.log('📝 Control: History item added:', item);
       setState(prev => ({
         ...prev,
-        ...newState,
-        history: newState.history || prev.history
+        history: [item, ...prev.history]
       }));
     });
 
-    socketRef.current = socketInstance;
-    setSocket(socketInstance);
+    setSocket(newSocket);
 
     return () => {
-      socketInstance.disconnect();
+      newSocket.disconnect();
     };
   }, [campaignId]);
 
-  const triggerSpin = useCallback(() => {
-    if (!socketRef.current?.connected) {
-      console.warn('⚠️ Control Panel: Socket not connected, cannot spin');
-      return;
-    }
+  const triggerSpin = useCallback((spinDuration?: number) => {
+    if (!socket) return;
     
-    console.log('🔄 Control Panel: Triggering spin for campaign:', campaignId);
-    socketRef.current.emit('trigger:spin', campaignId);
-    console.log('✅ Control Panel: Spin event emitted');
-  }, [campaignId]);
+    console.log('🎲 Control: Triggering spin with duration:', spinDuration || state.spinDuration);
+    
+    const currentScript = state.script?.[state.currentStep];
+    
+    socket.emit('control:spin', {
+      campaignId,
+      spinDuration: spinDuration || state.spinDuration,
+      targetId: state.targetId,
+      scriptInfo: currentScript ? {
+        step: currentScript.step,
+        contestant: currentScript.contestant,
+        question: currentScript.question_content
+      } : null
+    });
+
+    setState(prev => ({ ...prev, status: 'spinning' }));
+  }, [socket, campaignId, state.targetId, state.spinDuration, state.currentStep, state.script]);
 
   const triggerStop = useCallback(() => {
-    if (!socketRef.current?.connected) {
-      console.warn('⚠️ Control Panel: Socket not connected, cannot stop');
-      return;
-    }
+    if (!socket) return;
     
-    console.log('⏹️ Control Panel: Triggering stop for campaign:', campaignId);
-    socketRef.current.emit('trigger:stop', campaignId);
-    console.log('✅ Control Panel: Stop event emitted');
-  }, [campaignId]);
+    console.log('🛑 Control: Triggering stop');
+    socket.emit('control:stop', { 
+      campaignId,
+      targetId: state.targetId 
+    });
+
+    setState(prev => ({ ...prev, status: 'stopped' }));
+  }, [socket, campaignId, state.targetId]);
 
   const triggerNext = useCallback(() => {
-    if (!socketRef.current?.connected) {
-      console.warn('⚠️ Socket not connected');
-      return;
-    }
+    if (!socket) return;
     
-    console.log('⏭️ Triggering next for campaign:', campaignId);
-    socketRef.current.emit('trigger:next', campaignId);
-  }, [campaignId]);
+    console.log('⏭️ Control: Next step');
+    
+    const nextStep = state.currentStep + 1;
+    const nextScript = state.script?.[nextStep];
+    
+    socket.emit('control:next', { campaignId });
+    
+    setState(prev => ({
+      ...prev,
+      status: 'idle',
+      currentStep: nextStep,
+      targetId: nextScript?.target_judge_id || undefined
+    }));
+  }, [socket, campaignId, state.currentStep, state.script]);
 
   const overrideTarget = useCallback((targetId: string) => {
-    if (!socketRef.current?.connected) {
-      console.warn('⚠️ Socket not connected');
-      return;
-    }
+    if (!socket) return;
     
-    console.log('🎯 Overriding target for campaign:', campaignId, '-> Judge:', targetId);
-    socketRef.current.emit('override:target', { campaignId, targetId });
-  }, [campaignId]);
+    console.log('🎯 Control: Override target:', targetId);
+    socket.emit('control:override', { campaignId, targetId });
+    
+    setState(prev => ({ ...prev, targetId }));
+  }, [socket, campaignId]);
+
+  const updateScript = useCallback((script: DirectorScript[]) => {
+    if (!socket) return;
+    
+    console.log('📜 Control: Update script');
+    socket.emit('control:update-script', { campaignId, script });
+    
+    setState(prev => ({ ...prev, script }));
+  }, [socket, campaignId]);
+
+  const startAutoSpin = useCallback((duration: number) => {
+    if (!socket) return;
+    
+    console.log('⏰ Control: Start auto-spin with duration:', duration);
+    socket.emit('control:auto-spin', { campaignId, duration });
+  }, [socket, campaignId]);
+
+  const stopAutoSpin = useCallback(() => {
+    if (!socket) return;
+    
+    console.log('⏹️ Control: Stop auto-spin');
+    socket.emit('control:stop-auto-spin', { campaignId });
+  }, [socket, campaignId]);
+
+  const setStep = useCallback((stepIndex: number) => {
+    if (!socket) return;
+    
+    console.log('📍 Control: Set step:', stepIndex);
+    socket.emit('control:set-step', { campaignId, stepIndex });
+    setState(prev => ({ ...prev, currentStep: stepIndex }));
+  }, [socket, campaignId]);
 
   return {
     connected,
@@ -110,6 +167,10 @@ export const useSocket = (campaignId: string) => {
     triggerSpin,
     triggerStop,
     triggerNext,
-    overrideTarget
+    overrideTarget,
+    updateScript,
+    startAutoSpin,
+    stopAutoSpin,
+    setStep
   };
 };

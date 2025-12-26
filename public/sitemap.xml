@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://tingrandom.com/</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://tingrandom.com/images/logo/tingnect-logo.png</image:loc>
+      <image:title>TingRandom - Nền Tảng Quay Số Chuyên Nghiệp</image:title>
+    </image:image>
+    <mobile:mobile/>
+  </url>
+
+  <!-- Dashboard -->
+  <url>
+    <loc>https://tingrandom.com/dashboard</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Campaign Page -->
+  <url>
+    <loc>https://tingrandom.com/campaign</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Wheel Pages -->
+  <url>
+    <loc>https://tingrandom.com/wheel/personal</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://tingrandom.com/images/logo/tingnect-logo.png</image:loc>
+      <image:title>Vòng Quay Cá Nhân - TingRandom</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://tingrandom.com/wheel/business</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://tingrandom.com/images/logo/trustlabs-logos.png</image:loc>
+      <image:title>Vòng Quay Doanh Nghiệp - TingRandom</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://tingrandom.com/wheel/enterprise</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://tingrandom.com/images/logo/trustlabs-logos.png</image:loc>
+      <image:title>Vòng Quay Enterprise - Director Mode - TingRandom</image:title>
+    </image:image>
+  </url>
+
+  <!-- Pricing -->
+  <url>
+    <loc>https://tingrandom.com/pricing</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Auth Pages -->
+  <url>
+    <loc>https://tingrandom.com/auth/login</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tingrandom.com/auth/register</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Profile -->
+  <url>
+    <loc>https://tingrandom.com/profile</loc>
+    <lastmod>2025-12-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>

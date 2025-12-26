@@ -12,6 +12,8 @@ export interface DirectorScript {
   contestant: string;
   target_judge_id: string;
   question_content: string;
+    notes?: string; // Ghi chú thêm
+
 }
 
 export interface ControlState {
@@ -19,14 +21,19 @@ export interface ControlState {
   currentStep: number;
   targetId?: string;
   history: HistoryItem[];
+    spinDuration: number; // Thêm duration vào state
+  script?: DirectorScript[]; // Thêm script vào state
 }
 
 export interface HistoryItem {
   step: number;
   result: string;
-  timestamp: Date;
+  resultId: string;
+  timestamp: number;
+  contestant?: string; // Từ kịch bản
+  question?: string; // Từ kịch bản
+  color?: string;
 }
-
 export interface SocketEvents {
   'trigger:spin': void;
   'trigger:stop': void;

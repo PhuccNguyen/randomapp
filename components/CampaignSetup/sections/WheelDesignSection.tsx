@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Palette, Clock, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { Palette, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { WheelDesign } from '../types';
 import styles from '../CampaignSetup.module.css';
 
@@ -105,26 +105,6 @@ const WheelDesignSection: React.FC<WheelDesignSectionProps> = ({
               placeholder="#D4AF37"
             />
           </div>
-        </div>
-      </div>
-
-      {/* Spin Duration */}
-      <div className={styles.formGroup}>
-        <label className={styles.label}>
-          <Clock size={16} /> Thời gian quay: {design.spinDuration}s
-        </label>
-        <input
-          type="range"
-          min="1"
-          max="10"
-          step="0.5"
-          value={design.spinDuration}
-          onChange={(e) => onDesignChange({ spinDuration: parseFloat(e.target.value) })}
-          className={styles.rangeInput}
-        />
-        <div className={styles.rangeLabels}>
-          <span>1s (Nhanh)</span>
-          <span>10s (Chậm)</span>
         </div>
       </div>
 
