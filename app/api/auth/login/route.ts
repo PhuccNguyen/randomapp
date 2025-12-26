@@ -2,7 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import AuthService from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-config';
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,14 +98,24 @@ export async function POST(request: NextRequest) {
     user.lastLoginAt = new Date();
     await user.save();
 
-    // ✅ Generate token
-    const token = AuthService.generateToken({
-      userId: user._id.toString(),
-      email: user.email,
-      tier: user.tier
-    });
+    console.log('✅ Login successful for:', user.email);
 
-    // ✅ Return user data (without password)
+    // ✅ Create NextAuth JWT token
+    const token = jwt.sign(
+      {
+        sub: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        provider: user.provider || 'email',
+        googleId: user.googleId,
+        profileComplete: user.profileComplete || false,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60, // 7 days
+      },
+      process.env.NEXTAUTH_SECRET || 'secret'
+    );
+
+    // ✅ Return user data with token
     const userData = {
       id: user._id.toString(),
       username: user.username,
@@ -112,15 +124,29 @@ export async function POST(request: NextRequest) {
       tier: user.tier,
       subscriptionStatus: user.subscriptionStatus,
       campaignsCount: user.campaignsCount,
-      isEmailVerified: user.isEmailVerified
+      isEmailVerified: user.isEmailVerified,
+      provider: user.provider || 'email',
+      profileComplete: user.profileComplete || false,
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Đăng nhập thành công',
-      user: userData,
-      token
+      user: userData
     });
+
+    // ✅ Set NextAuth JWT cookie (httpOnly, secure)
+    response.cookies.set({
+      name: 'next-auth.jwt',
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/'
+    });
+
+    return response;
 
   } catch (error: any) {
     console.error('❌ Login error:', error);

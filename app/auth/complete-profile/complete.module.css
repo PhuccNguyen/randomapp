@@ -135,6 +135,23 @@
   color: #1f2937;
 }
 
+.togglePassword {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.togglePassword:hover {
+  color: #6b7280;
+}
+
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;

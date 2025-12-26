@@ -31,9 +31,25 @@ export default function LoginPage() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user && !hasRedirected) {
       setHasRedirected(true);
-      const redirect = searchParams.get('redirect') || '/control';
-      // Use replace để tránh back button
-      router.replace(redirect);
+      const userProfile = session.user as any;
+      console.log('🔍 Login session data:', {
+        email: userProfile.email,
+        provider: userProfile.provider,
+        profileComplete: userProfile.profileComplete,
+        allFields: Object.keys(userProfile)
+      });
+      
+      // Nếu profileComplete !== true (Google user chưa setup) → redirect tới profile setup
+      // Google user cần phải setup profile trước khi access dashboard
+      if (userProfile.profileComplete !== true && userProfile.provider === 'google') {
+        console.log('📋 Profile not complete and provider is google, redirecting to setup');
+        router.replace('/auth/complete-profile');
+      } else {
+        // Nếu đã setup profile (profileComplete === true) hoặc không phải Google user → redirect tới home
+        const redirect = searchParams.get('redirect') || '/';
+        console.log('✅ Profile complete or non-google user, redirecting to:', redirect);
+        router.replace(redirect);
+      }
     }
   }, [status, session, router, searchParams, hasRedirected]);
 
@@ -44,6 +60,7 @@ export default function LoginPage() {
     setSuccess('');
 
     try {
+      // Call custom login endpoint
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -54,17 +71,18 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         setSuccess('✅ Đăng nhập thành công!');
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.token);
         
-        window.dispatchEvent(new Event('userChanged'));
+        // Trigger NextAuth session update by calling getSession
+        // This will fetch the updated session from NextAuth
+        const redirectUrl = searchParams.get('redirect') || '/';
         
-        const redirect = searchParams.get('redirect') || '/control';
+        // Wait a bit for session to update, then redirect
         setTimeout(() => {
-          router.push(redirect);
-        }, 500);
+          // Hard redirect to let server set session properly
+          window.location.href = redirectUrl;
+        }, 300);
       } else {
         setError(data.error || 'Đăng nhập thất bại');
       }

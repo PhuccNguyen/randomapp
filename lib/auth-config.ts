@@ -23,17 +23,23 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, account, profile }) {
-      // Khi user sign in lần đầu, thêm user info vào token
+      // Khi user sign in lần đầu (có user object)
       if (user) {
         token.sub = user.id;
         token.email = user.email;
         token.name = user.name;
+        // Lấy data từ user object truyền vào
+        token.provider = (user as any).provider || 'email';
+        token.googleId = (user as any).googleId;
+        token.profileComplete = (user as any).profileComplete || false;
+        console.log('🔐 JWT - new login:', { email: user.email, provider: token.provider, profileComplete: token.profileComplete });
       }
       
-      // Nếu này là Google sign in, lưu thông tin account
+      // Nếu đây là OAuth (account object có)
       if (account?.provider === "google" && profile) {
         token.provider = "google";
         token.googleId = profile.sub;
+        console.log('🔐 JWT - google oauth:', { email: profile.email });
       }
       
       return token;
@@ -43,8 +49,14 @@ export const authOptions: NextAuthOptions = {
       // Gửi thêm thông tin vào session
       if (session?.user) {
         (session.user as any).id = token.sub;
-        (session.user as any).provider = token.provider;
+        (session.user as any).provider = token.provider || 'email';
         (session.user as any).googleId = token.googleId;
+        (session.user as any).profileComplete = token.profileComplete === true;
+        console.log('📊 Session:', {
+          email: session.user.email,
+          provider: token.provider,
+          profileComplete: token.profileComplete === true
+        });
       }
       return session;
     },
@@ -99,11 +111,16 @@ export const authOptions: NextAuthOptions = {
             });
             
             await newUser.save();
-            console.log('✅ New Google user created:', newUser._id);
-            // Đảm bảo return true để cho phép login
+            console.log('✅ New Google user created:', newUser._id, 'profileComplete:', newUser.profileComplete);
+            
+            // Set data on user object so JWT callback can access it
+            (user as any).provider = 'google';
+            (user as any).googleId = profile.sub;
+            (user as any).profileComplete = false;
+            
             return true;
           } else {
-            console.log('👤 Existing user found');
+            console.log('👤 Existing user found - provider:', existingUser.provider, 'profileComplete:', existingUser.profileComplete);
             if (!existingUser.googleId) {
               // Link Google account với existing user
               existingUser.googleId = profile.sub;
@@ -114,6 +131,12 @@ export const authOptions: NextAuthOptions = {
               await existingUser.save();
               console.log('✅ Google account linked to user:', existingUser._id);
             }
+            
+            // Set data on user object so JWT callback can access it
+            (user as any).provider = existingUser.provider;
+            (user as any).googleId = existingUser.googleId;
+            (user as any).profileComplete = existingUser.profileComplete;
+            
             return true;
           }
         }
