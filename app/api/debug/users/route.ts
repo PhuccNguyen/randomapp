@@ -29,7 +29,7 @@ export async function GET() {
       { 
         success: false, 
         error: 'Failed to fetch users',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
       }
     });
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating user tier:', error);
     return NextResponse.json(
-      { success: false, error: 'Lỗi khi cập nhật tier: ' + error.message },
+      { success: false, error: 'Lỗi khi cập nhật tier: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }

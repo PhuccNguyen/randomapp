@@ -68,7 +68,7 @@ export default function Header() {
     name: session.user?.name || '',
     email: session.user?.email || '',
     tier: (session.user as any)?.tier || 'PERSONAL',
-    avatar: session.user?.image
+    avatar: session.user?.image || undefined
   } : localUser;
 
   const handleLogout = async () => {

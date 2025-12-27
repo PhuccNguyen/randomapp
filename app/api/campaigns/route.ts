@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating campaign:', error);
     
-    if (error.name === 'ValidationError') {
+    if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
         { success: false, error: 'Dữ liệu không hợp lệ: ' + error.message },
         { status: 400 }
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: false, error: 'Lỗi máy chủ: ' + error.message },
+      { success: false, error: 'Lỗi máy chủ: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const token = AuthService.extractTokenFromRequest(request);
-    let campaigns;
+    let campaigns: any[] = [];
     
     if (token) {
       try {

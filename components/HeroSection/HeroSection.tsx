@@ -8,6 +8,10 @@ import MiddleColumn from './MiddleColumn';
 import RightColumn from './RightColumn';
 import Modals from './Modals';
 
+interface HeroSectionProps {
+  user?: any;
+}
+
 interface Segment {
   id: string;
   label: string;
@@ -24,7 +28,7 @@ interface SpinHistoryItem {
 type TierType = 'personal' | 'business' | 'enterprise';
 type ActiveTab = 'history' | 'settings' | 'customize';
 
-const HeroSection: React.FC = () => {
+const HeroSection: React.FC<HeroSectionProps> = ({ user }) => {
   // State Management
   const [currentTier, setCurrentTier] = useState<TierType>('personal');
   const [activeTab, setActiveTab] = useState<ActiveTab>('settings');

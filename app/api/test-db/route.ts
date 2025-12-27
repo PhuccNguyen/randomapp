@@ -15,7 +15,7 @@ export async function GET() {
       { 
         success: false, 
         error: 'Failed to connect to MongoDB Atlas',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

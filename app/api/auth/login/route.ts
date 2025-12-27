@@ -122,10 +122,10 @@ export async function POST(request: NextRequest) {
       token
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Login error:', error);
     return NextResponse.json(
-      { success: false, error: 'Đã xảy ra lỗi khi đăng nhập: ' + error.message },
+      { success: false, error: 'Đã xảy ra lỗi khi đăng nhập: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }

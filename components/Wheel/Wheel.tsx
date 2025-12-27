@@ -14,21 +14,29 @@ interface JudgeItem {
 }
 
 interface WheelProps {
-  items: JudgeItem[];
+  items?: JudgeItem[];
+  segments?: string[];
   campaignId?: string;
   isSpinning?: boolean;
   isStopping?: boolean;
   targetId?: string;
+  result?: string | null;
+  onSpin?: () => void;
   onSpinComplete?: (result: JudgeItem) => void;
+  size?: number;
 }
 
 const Wheel: React.FC<WheelProps> = ({
-  items,
+  items = [],
+  segments,
   campaignId,
   isSpinning = false,
   isStopping = false,
   targetId,
-  onSpinComplete
+  result,
+  onSpin,
+  onSpinComplete,
+  size
 }) => {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);

@@ -130,11 +130,11 @@ const UserSchema = new Schema<IUser>({
     virtuals: true,
     transform: function(doc, ret) {
       ret.id = ret._id.toString(); // Convert to string and assign to id
-      delete ret._id; // Then delete _id
-      delete ret.__v;
-      delete ret.password; // An toàn tuyệt đối
-      delete ret.emailVerificationToken;
-      delete ret.resetPasswordToken;
+      delete (ret as any)._id; // Then delete _id
+      delete (ret as any).__v;
+      delete (ret as any).password; // An toàn tuyệt đối
+      delete (ret as any).emailVerificationToken;
+      delete (ret as any).resetPasswordToken;
       return ret;
     }
   },

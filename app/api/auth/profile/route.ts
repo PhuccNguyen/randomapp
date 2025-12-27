@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Profile fetch error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -119,6 +119,13 @@ export async function PUT(request: NextRequest) {
     // Return updated user (without password)
     const updatedUser = await User.findById(user._id).select('-password');
 
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'Không tìm thấy user' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Cập nhật thành công',
@@ -132,16 +139,14 @@ export async function PUT(request: NextRequest) {
         companyName: updatedUser.companyName,
         companySize: updatedUser.companySize,
         industry: updatedUser.industry,
-        campaignsCount: updatedUser.campaignsCount,
-        createdAt: updatedUser.createdAt,
-        lastLoginAt: updatedUser.lastLoginAt
+        createdAt: updatedUser.createdAt
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Profile update error:', error);
     return NextResponse.json(
-      { success: false, error: 'Đã xảy ra lỗi: ' + error.message },
+      { success: false, error: 'Đã xảy ra lỗi: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }

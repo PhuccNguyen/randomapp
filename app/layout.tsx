@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import AuthProvider from '@/components/AuthProvider';
 import './globals.css';
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'Nền Tảng Quay Số Chuyên Nghiệp | TingRandom - TrustLabs',
   description: 'Hệ thống điều phối sự kiện thông minh với khả năng kiểm soát tuyệt đối. Từ quay vui cá nhân đến sự kiện lớn Hoa Hậu, Gameshow. Director Mode, Real-time Control, Tính Năng Upsell.',

@@ -35,21 +35,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return user info
+    // Return user info (chỉ dùng các field chắc chắn tồn tại)
     const userResponse = {
       id: user._id,
       email: user.email,
       name: user.name,
       tier: user.tier,
       subscriptionStatus: user.subscriptionStatus,
-      subscriptionEnd: user.subscriptionEnd,
+      subscriptionEndsAt: user.subscriptionEndsAt,
       tierLimits: user.tierLimits,
       isSubscriptionActive: user.isSubscriptionActive,
-      companyName: user.companyName,
-      avatar: user.avatar,
-      campaignsCount: user.campaignsCount,
-      daysLeft: user.daysLeft,
-      isAdmin: user.isAdmin
+      companyName: user.companyName || null
     };
 
     return NextResponse.json({

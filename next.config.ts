@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Output standalone cho Docker
-  output: 'standalone',
+  // Skip static generation - app cần dynamic rendering
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
   
   webpack: (config, { isServer }) => {
     if (!isServer) {

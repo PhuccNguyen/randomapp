@@ -5,27 +5,27 @@
 version: '3.8'
 
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: tingrandom-mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
-      MONGO_INITDB_DATABASE: tingrandom
-    volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    ports:
-      - "27017:27017"
-    networks:
-      - tingrandom-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # MongoDB Database - Tắt vì dùng Atlas cloud
+  # mongodb:
+  #   image: mongo:7.0
+  #   container_name: tingrandom-mongodb
+  #   restart: unless-stopped
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+  #     MONGO_INITDB_DATABASE: tingrandom
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #     - mongodb_config:/data/configdb
+  #   ports:
+  #     - "27017:27017"
+  #   networks:
+  #     - tingrandom-network
+  #   healthcheck:
+  #     test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # TingRandom App (Next.js + Socket.IO)
   app:
@@ -34,24 +34,29 @@ services:
       dockerfile: Dockerfile
     container_name: tingrandom-app
     restart: unless-stopped
-    depends_on:
-      mongodb:
-        condition: service_healthy
+    # depends_on:
+    #   mongodb:
+    #     condition: service_healthy
     environment:
-      # MongoDB Connection
-      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongodb:27017/tingrandom?authSource=admin
+      # MongoDB Connection - Dùng Atlas cloud
+      MONGODB_URI: ${MONGODB_URI}
       
       # NextAuth
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-generate-a-random-secret-key-here}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_JWT_SECRET: ${NEXTAUTH_JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       
-      # Google OAuth (nếu dùng)
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Google OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED: ${NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED}
       
       # App Config
-      NODE_ENV: production
-      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       
       # Domain (cho production)
       DOMAIN: ${DOMAIN:-random.tingnect.com}
@@ -61,12 +66,12 @@ services:
       - tingrandom-network
     volumes:
       - app_uploads:/app/public/uploads
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    # healthcheck:
+    #   test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 40s
 
   # Nginx Reverse Proxy (cho production với domain)
   nginx:

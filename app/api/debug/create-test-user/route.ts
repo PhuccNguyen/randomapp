@@ -54,7 +54,7 @@ export async function POST() {
       { 
         success: false, 
         error: 'Failed to create test user',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

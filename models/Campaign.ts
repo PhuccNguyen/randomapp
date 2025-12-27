@@ -153,8 +153,8 @@ const CampaignSchema = new Schema<ICampaign>({
   toJSON: { 
     virtuals: true,
     transform: function(doc, ret) {
-      delete ret._id; // Frontend thích dùng 'id' hơn '_id'
-      delete ret.__v;
+      delete (ret as any)._id; // Frontend thích dùng 'id' hơn '_id'
+      delete (ret as any).__v;
       return ret;
     }
   },

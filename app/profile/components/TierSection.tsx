@@ -119,7 +119,7 @@ const TierSection: React.FC<TierSectionProps> = ({ user }) => {
                 className={styles.upgradeTierButton}
                 onClick={() => router.push('/pricing')}
               >
-                {parseInt(tier.id.charCodeAt(0)) > parseInt(user.tier.charCodeAt(0))
+                {tier.id.charCodeAt(0) > user.tier.charCodeAt(0)
                   ? 'Nâng cấp'
                   : 'Chuyển xuống'}
               </button>

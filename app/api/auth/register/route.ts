@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       name: defaultName,
       tier: userTier, // ✅ Use provided tier or default to PERSONAL
       subscriptionStatus: SubscriptionStatus.ACTIVE,
-      subscriptionEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+      subscriptionEndsAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
       needsProfileCompletion: true
     };
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       tier: user.tier,
       needsProfile: true,
       subscriptionStatus: user.subscriptionStatus,
-      subscriptionEnd: user.subscriptionEnd,
+      subscriptionEndsAt: user.subscriptionEndsAt,
       tierLimits: user.tierLimits,
       isSubscriptionActive: user.isSubscriptionActive,
       companyName: user.companyName

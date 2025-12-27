@@ -19,6 +19,7 @@ interface SimpleWheelProps {
   onSpinComplete?: (result: string) => void;
   duration?: number; // seconds
   campaignId?: string; // Dùng để định danh nếu cần log
+  shape?: 'circle' | 'fan' | 'clock';
 }
 
 // --- 2. COMPONENT ---

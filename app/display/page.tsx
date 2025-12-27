@@ -1,6 +1,8 @@
 // C:\Users\Nguyen Phuc\Web\tingrandom\app\display\page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';

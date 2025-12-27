@@ -1,9 +1,11 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header/Header';
-import { Wheel } from 'lucide-react';
+import { CircleDot } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function CreateWheelPage() {
@@ -89,7 +91,7 @@ export default function CreateWheelPage() {
             {/* Left Panel - Settings */}
             <div className={styles.editorPanel}>
               <div className={styles.panelHeader}>
-                <Wheel size={24} />
+                <CircleDot size={24} />
                 <h2>Thiết lập vòng quay</h2>
               </div>
 

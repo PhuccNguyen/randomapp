@@ -53,7 +53,7 @@ export default function DashboardPage() {
           name: session.user.name || '',
           email: session.user.email || '',
           tier: (session.user as any)?.tier || 'PERSONAL',
-          avatar: session.user.image
+          avatar: session.user.image || undefined
         });
         return;
       }

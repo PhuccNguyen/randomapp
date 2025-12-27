@@ -84,10 +84,10 @@ export async function POST(request: NextRequest) {
       message: 'Đổi mật khẩu thành công'
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Change password error:', error);
     return NextResponse.json(
-      { success: false, error: 'Đã xảy ra lỗi: ' + error.message },
+      { success: false, error: 'Đã xảy ra lỗi: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }
