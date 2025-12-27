@@ -6,8 +6,16 @@ import { useSearchParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { getSocketUrl, socketOptions } from '@/lib/socket-client';
 import { Tv, Wifi, WifiOff, Loader2, AlertCircle, Trophy, Users, Crown, Play, CheckCircle, Award } from 'lucide-react';
-import Wheel from '@/components/Wheel/Wheel';
+// import Wheel from '@/components/Wheel/Wheel';
 import styles from './page.module.css';
+// Thêm vào đầu file sau các import hiện tại:
+import dynamic from 'next/dynamic';
+
+// Dynamic imports cho các component
+const Wheel = dynamic(() => import('@/components/Wheel/Wheel'), { ssr: false });
+const GlassCylinder = dynamic(() => import('@/components/Wheel/GlassCylinder'), { ssr: false });
+const InfiniteHorizon = dynamic(() => import('@/components/Wheel/InfiniteHorizon'), { ssr: false });
+const CyberDecode = dynamic(() => import('@/components/Wheel/CyberDecode'), { ssr: false });
 
 interface WheelItem {
   id: string;
@@ -24,6 +32,8 @@ interface Campaign {
   name: string;
   description?: string;
   items: WheelItem[];
+    mode?: 'wheel' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode'; // ✅ Thêm field này
+
   settings: {
     spinDuration?: number;
     spinSound?: boolean;
@@ -350,8 +360,8 @@ console.log('🎉 Guest: Final winner object:', newWinner);
 
           <div className={styles.headerRight}>
             <div className={styles.participantsBadge}>
-              <Users size={18} />
-              <span>{campaign.items.length}</span>
+              <Users size={20} strokeWidth={2.5} />
+              <span>{campaign.items.length} Giám khảo</span>
             </div>
             <div className={`${styles.liveBadge} ${connected ? styles.liveActive : styles.liveInactive}`}>
               <span className={styles.liveDot}></span>
@@ -399,31 +409,67 @@ console.log('🎉 Guest: Final winner object:', newWinner);
         </aside>
 
         {/* Center - Wheel */}
-        <main className={styles.wheelSection}>
-          <div className={styles.wheelWrapper}>
-            {/* Decorative Elements */}
-            <div className={styles.wheelDecor}>
-              <div className={styles.wheelRing}></div>
-              <div className={styles.wheelGlow}></div>
-            </div>
+{/* Center - Dynamic Component based on mode */}
+<main className={styles.wheelSection}>
+  <div className={styles.wheelWrapper}>
+    {/* Decorative Elements */}
+    <div className={styles.wheelDecor}>
+      <div className={styles.wheelRing}></div>
+      <div className={styles.wheelGlow}></div>
+    </div>
 
-            {/* Wheel Component */}
-            <Wheel
-              items={campaign.items}
-              isSpinning={spinning}
-              isStopping={stopping}
-              targetId={targetId || undefined}
-              onSpinComplete={handleSpinComplete}
-            />
+    {/* Dynamic Component */}
+    {campaign.mode === 'glass-cylinder' && (
+      <GlassCylinder
+        items={campaign.items}
+        campaignId={campaign._id}
+        isSpinning={spinning}
+        isStopping={stopping}
+        targetId={targetId || undefined}
+        onSpinComplete={handleSpinComplete}
+      />
+    )}
+    
+    {campaign.mode === 'infinite-horizon' && (
+      <InfiniteHorizon
+        items={campaign.items}
+        campaignId={campaign._id}
+        isSpinning={spinning}
+        isStopping={stopping}
+        targetId={targetId || undefined}
+        onSpinComplete={handleSpinComplete}
+      />
+    )}
+    
+    {campaign.mode === 'cyber-decode' && (
+      <CyberDecode
+        items={campaign.items}
+        campaignId={campaign._id}
+        isSpinning={spinning}
+        isStopping={stopping}
+        targetId={targetId || undefined}
+        onSpinComplete={handleSpinComplete}
+      />
+    )}
+    
+    {(!campaign.mode || campaign.mode === 'wheel') && (
+      <Wheel
+        items={campaign.items}
+        isSpinning={spinning}
+        isStopping={stopping}
+        targetId={targetId || undefined}
+        onSpinComplete={handleSpinComplete}
+      />
+    )}
 
-            {/* Spin Counter */}
-            {spinCount > 0 && (
-              <div className={styles.spinCounter}>
-                <Play size={16} />
-                <span>Lượt {spinCount}</span>
-              </div>
-            )}
-          </div>
+    {/* Spin Counter */}
+    {spinCount > 0 && (
+      <div className={styles.spinCounter}>
+        <Play size={16} />
+        <span>Lượt {spinCount}</span>
+      </div>
+    )}
+  </div>
 
           {/* Status Message */}
           <div className={styles.statusMessage}>

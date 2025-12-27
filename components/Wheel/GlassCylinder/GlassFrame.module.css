@@ -1,0 +1,96 @@
+/* C:\Users\Nguyen Phuc\Web\tingrandom\components\Wheel\GlassCylinder\GlassFrame.module.css */
+
+.glassFrame {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.frameTop,
+.frameBottom {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 130px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.35) 40%,
+    rgba(14, 165, 233, 0.08) 100%
+  );
+  backdrop-filter: blur(25px) saturate(200%);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 
+    0 6px 30px rgba(14, 165, 233, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.frameTop {
+  top: 0;
+  border-radius: 26px 26px 0 0;
+  border-bottom: 3px solid rgba(14, 165, 233, 0.5);
+}
+
+.frameBottom {
+  bottom: 0;
+  border-radius: 0 0 26px 26px;
+  border-top: 3px solid rgba(14, 165, 233, 0.5);
+  transform: rotate(180deg);
+}
+
+.frameBorder {
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 18px;
+  box-shadow: 
+    inset 0 0 25px rgba(14, 165, 233, 0.15),
+    0 0 20px rgba(14, 165, 233, 0.1);
+}
+
+.frameLight {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 75%;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(14, 165, 233, 0.7) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.6);
+  animation: frameGlow 3.5s ease-in-out infinite;
+}
+
+@keyframes frameGlow {
+  0%, 100% { opacity: 0.6; width: 65%; }
+  50% { opacity: 1; width: 85%; }
+}
+
+.frameShadow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.02) 50%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  border-radius: inherit;
+}
+
+@media (max-width: 768px) {
+  .glassFrame {
+    width: 95%;
+  }
+  
+  .frameTop,
+  .frameBottom {
+    height: 110px;
+  }
+}

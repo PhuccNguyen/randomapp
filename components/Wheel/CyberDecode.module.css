@@ -1,0 +1,262 @@
+/* C:\Users\Nguyen Phuc\Web\tingrandom\components\Wheel\CyberDecode.module.css */
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  background: #000000;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  opacity: 0.1;
+}
+
+.gridCell {
+  border: 1px solid #00ff00;
+}
+
+.scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 255, 0, 0.8) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+  pointer-events: none;
+  animation: scanlineGlow 2s ease-in-out infinite;
+}
+
+@keyframes scanlineGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.codeDisplay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 900px;
+  z-index: 10;
+}
+
+.terminal {
+  background: rgba(0, 20, 0, 0.9);
+  border: 3px solid #00ff00;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 40px rgba(0, 255, 0, 0.5),
+    inset 0 0 20px rgba(0, 255, 0, 0.1);
+  overflow: hidden;
+}
+
+.terminalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(0, 255, 0, 0.1);
+  border-bottom: 2px solid #00ff00;
+}
+
+.terminalTitle,
+.terminalStatus {
+  font-size: 14px;
+  font-weight: bold;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  letter-spacing: 2px;
+}
+
+.terminalStatus {
+  animation: statusBlink 1.5s ease-in-out infinite;
+}
+
+@keyframes statusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.terminalBody {
+  padding: 40px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+
+.codeText {
+  font-size: 72px;
+  font-weight: bold;
+  color: #00ff00;
+  text-shadow: 
+    0 0 20px rgba(0, 255, 0, 1),
+    0 0 40px rgba(0, 255, 0, 0.8),
+    0 0 60px rgba(0, 255, 0, 0.5);
+  letter-spacing: 8px;
+  text-align: center;
+  animation: textGlitch 0.3s ease-in-out infinite;
+  filter: contrast(1.2) brightness(1.1);
+}
+
+@keyframes textGlitch {
+  0%, 90% { transform: translate(0, 0); }
+  92% { transform: translate(-2px, 1px); }
+  94% { transform: translate(2px, -1px); }
+  96% { transform: translate(-1px, -2px); }
+  98% { transform: translate(1px, 2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 5px;
+  animation: cursorBlink 0.8s steps(1) infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 255, 0, 0.2);
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 
+    0 0 10px rgba(0, 255, 0, 0.3),
+    inset 0 0 5px rgba(0, 255, 0, 0.2);
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg,
+    #00ff00 0%,
+    #00ff88 50%,
+    #00ff00 100%
+  );
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+  transition: width 0.3s ease;
+  animation: progressGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes progressGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.dataStream {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  overflow: hidden;
+}
+
+.streamLine {
+  position: absolute;
+  top: -20px;
+  font-size: 10px;
+  color: #00ff00;
+  white-space: nowrap;
+  animation: streamFall 3s linear infinite;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+}
+
+@keyframes streamFall {
+  0% { transform: translateY(-20px); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(620px); opacity: 0; }
+}
+
+.glitchOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.glitchBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 1);
+  animation: glitchMove 0.5s steps(5) infinite;
+}
+
+@keyframes glitchMove {
+  0% { transform: translateX(0) scaleX(1); }
+  25% { transform: translateX(-10px) scaleX(1.1); }
+  50% { transform: translateX(10px) scaleX(0.9); }
+  75% { transform: translateX(-5px) scaleX(1.05); }
+  100% { transform: translateX(0) scaleX(1); }
+}
+
+/* CRT Monitor Effect */
+.container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    transparent 1px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 3px
+  );
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* Vignette Effect */
+.container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  pointer-events: none;
+  z-index: 25;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    height: 500px;
+  }
+  
+  .codeText {
+    font-size: 48px;
+    letter-spacing: 4px;
+  }
+  
+  .terminalBody {
+    padding: 20px;
+  }
+}

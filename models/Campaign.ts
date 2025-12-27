@@ -23,7 +23,7 @@ export interface ICampaign extends Document {
   description?: string; // Added field
   items: IJudgeItem[];
   director_script?: IDirectorScript[];
-  mode: 'wheel' | 'reel' | 'battle' | 'mystery';
+  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode';
   displayMode: 'random' | 'director';
   owner: mongoose.Types.ObjectId;
   isPublic: boolean;
@@ -106,7 +106,7 @@ const CampaignSchema = new Schema<ICampaign>({
   },
   mode: {
     type: String,
-    enum: ['wheel', 'reel', 'battle', 'mystery'],
+    enum: ['wheel', 'reel', 'battle', 'mystery', 'glass-cylinder', 'infinite-horizon', 'cyber-decode'],
     default: 'wheel'
   },
   displayMode: {

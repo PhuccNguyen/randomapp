@@ -1,0 +1,241 @@
+/* C:\Users\Nguyen Phuc\Web\tingrandom\components\Wheel\GlassCylinder\CylinderItem.module.css */
+
+.cylinderItem {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  width: 93%;
+  height: 130px;
+  margin-left: -46.5%;
+  margin-top: -65px;
+  transform-style: preserve-3d;
+  transition: opacity 0.25s ease;
+}
+
+.itemContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px 45px;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.9) 45%,
+    rgba(240, 249, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(18px) saturate(200%);
+  border-radius: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 6px 28px rgba(14, 165, 233, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(14, 165, 233, 0.08);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.itemBackground {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top left,
+    rgba(14, 165, 233, 0.05) 0%,
+    transparent 60%
+  );
+  border-radius: 22px;
+  opacity: 0.6;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+.cylinderItem.focused .itemContent {
+  background: linear-gradient(135deg,
+    rgba(14, 165, 233, 0.18) 0%,
+    rgba(56, 189, 248, 0.22) 45%,
+    rgba(14, 165, 233, 0.16) 100%
+  );
+  border: 3px solid rgba(14, 165, 233, 0.85);
+  box-shadow: 
+    0 0 50px rgba(14, 165, 233, 0.45),
+    0 0 80px rgba(14, 165, 233, 0.25),
+    0 8px 40px rgba(14, 165, 233, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transform: scale(1.06);
+}
+
+.cylinderItem.focused .itemBackground {
+  opacity: 0.75;
+}
+
+.itemImageWrapper {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.itemImage {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(14, 165, 233, 0.35);
+  box-shadow: 
+    0 6px 22px rgba(14, 165, 233, 0.2),
+    inset 0 2px 6px rgba(255, 255, 255, 0.4);
+  transition: all 0.4s ease;
+}
+
+.cylinderItem.focused .itemImage {
+  border: 5px solid rgba(14, 165, 233, 0.9);
+  box-shadow: 
+    0 0 35px rgba(14, 165, 233, 0.6),
+    0 8px 32px rgba(14, 165, 233, 0.25);
+  transform: scale(1.12);
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imageRing {
+  position: absolute;
+  inset: -8px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.cylinderItem.focused .imageRing {
+  opacity: 1;
+  animation: ringPulse 2s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.itemNameWrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1;
+}
+
+.itemName {
+  font-size: 32px;
+  font-weight: 800;
+  text-shadow: 
+    0 2px 6px rgba(14, 165, 233, 0.15),
+    0 0 25px currentColor;
+  letter-spacing: 0.8px;
+  transition: all 0.4s ease;
+  line-height: 1.2;
+}
+
+.cylinderItem.focused .itemName {
+  font-size: 38px;
+  text-shadow: 
+    0 3px 10px rgba(14, 165, 233, 0.25),
+    0 0 35px currentColor,
+    0 0 65px currentColor;
+  animation: textShine 2.5s ease-in-out infinite;
+}
+
+@keyframes textShine {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.itemBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(14, 165, 233, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  padding: 4px 12px;
+  background: rgba(14, 165, 233, 0.15);
+  border-radius: 6px;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  animation: badgePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.focusGlow {
+  position: absolute;
+  inset: -25px;
+  border-radius: 22px;
+  opacity: 0.45;
+  filter: blur(45px);
+  animation: glowPulse 2.8s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.96); }
+  50% { opacity: 0.55; transform: scale(1.04); }
+}
+
+.focusRings {
+  position: absolute;
+  inset: -35px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid;
+  border-radius: 22px;
+  opacity: 0.65;
+  animation: ringExpand 2.2s ease-out infinite;
+}
+
+.ring:nth-child(2) {
+  animation-delay: 0.55s;
+}
+
+@keyframes ringExpand {
+  0% { transform: scale(1); opacity: 0.75; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .cylinderItem {
+    height: 115px;
+    margin-top: -57.5px;
+  }
+  
+  .itemContent {
+    padding: 20px 35px;
+    gap: 18px;
+  }
+  
+  .itemImage {
+    width: 68px;
+    height: 68px;
+  }
+  
+  .itemName {
+    font-size: 26px;
+  }
+  
+  .cylinderItem.focused .itemName {
+    font-size: 30px;
+  }
+}

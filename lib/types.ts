@@ -18,7 +18,7 @@ export interface Campaign {
   name: string;
   items: JudgeItem[];
   director_script?: DirectorScript[];
-  mode: 'wheel' | 'reel' | 'battle' | 'mystery';
+  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode';
   displayMode: 'random' | 'director';
   createdAt?: Date;
   updatedAt?: Date;

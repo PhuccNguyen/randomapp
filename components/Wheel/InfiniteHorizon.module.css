@@ -1,0 +1,278 @@
+/* C:\Users\Nguyen Phuc\Web\tingrandom\components\Wheel\InfiniteHorizon.module.css */
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.9) 50%,
+    rgba(15, 23, 42, 0.95) 100%
+  );
+  perspective: 1500px;
+}
+
+.track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 400px;
+  transform-style: preserve-3d;
+}
+
+.card {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform-origin: center center;
+  width: 280px;
+  height: 380px;
+  margin-top: -190px;
+  transition: opacity 0.2s ease;
+  transform-style: preserve-3d;
+}
+
+.cardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.card.flipping .cardInner {
+  transform: rotateY(360deg) scale(1.1);
+}
+
+.cardFront {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 30px;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  backface-visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.card.centered .cardFront {
+  background: linear-gradient(135deg,
+    rgba(124, 58, 237, 0.3) 0%,
+    rgba(99, 102, 241, 0.2) 100%
+  );
+  border: 3px solid rgba(124, 58, 237, 0.8);
+  box-shadow: 
+    0 0 60px rgba(124, 58, 237, 0.6),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+
+.cardImage {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(124, 58, 237, 0.3);
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardName {
+  font-size: 32px;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.6),
+    0 0 30px currentColor;
+  letter-spacing: 1.5px;
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+.card.centered .cardName {
+  font-size: 38px;
+  text-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.8),
+    0 0 40px currentColor,
+    0 0 80px currentColor;
+}
+
+.cardGlow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 24px;
+  opacity: 0;
+  filter: blur(40px);
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.card.centered .cardGlow {
+  opacity: 0.6;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.centerMarker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.markerLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(124, 58, 237, 0.8) 20%,
+    rgba(124, 58, 237, 1) 50%,
+    rgba(124, 58, 237, 0.8) 80%,
+    transparent 100%
+  );
+  box-shadow: 
+    0 0 20px rgba(124, 58, 237, 0.8),
+    0 0 40px rgba(124, 58, 237, 0.5);
+}
+
+.markerArrow {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 48px;
+  color: #7c3aed;
+  text-shadow: 
+    0 0 30px rgba(124, 58, 237, 1),
+    0 0 60px rgba(124, 58, 237, 0.6);
+  animation: arrowBounce 2s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+.motionBlur {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 150;
+  overflow: hidden;
+}
+
+.blurLine {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(124, 58, 237, 0.6) 50%,
+    transparent 100%
+  );
+  filter: blur(8px);
+  animation: blurSlide 0.8s linear infinite;
+}
+
+.blurLine:nth-child(2) {
+  margin-top: 60px;
+  animation-delay: 0.2s;
+}
+
+.blurLine:nth-child(3) {
+  margin-top: -60px;
+  animation-delay: 0.4s;
+}
+
+@keyframes blurSlide {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.horizon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(124, 58, 237, 0.1) 50%,
+    rgba(124, 58, 237, 0.2) 100%
+  );
+  pointer-events: none;
+  z-index: 50;
+}
+
+.horizon::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(124, 58, 237, 0.8) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    height: 500px;
+  }
+  
+  .card {
+    width: 220px;
+    height: 300px;
+    margin-top: -150px;
+  }
+  
+  .cardName {
+    font-size: 24px;
+  }
+  
+  .card.centered .cardName {
+    font-size: 28px;
+  }
+}

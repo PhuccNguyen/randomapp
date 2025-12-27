@@ -1,0 +1,242 @@
+/* Cylinder Item - Refined Ocean Theme với màu chuẩn và hiệu ứng nhẹ */
+
+.cylinderItem {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  width: 92%;
+  height: 130px;
+  margin-left: -46%;
+  margin-top: -65px;
+  transform-style: preserve-3d;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease;
+}
+
+.cylinderItem.spinning {
+  filter: blur(0px);
+}
+
+/* Item content card - Màu trắng tinh khiết với viền ocean blue */
+.itemContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 22px 45px;
+  
+  /* Nền trắng tinh khiết với hint xanh nhẹ */
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 252, 255, 0.96) 50%,
+    rgba(255, 255, 255, 0.98) 100%
+  );
+  backdrop-filter: blur(30px) saturate(160%);
+  border-radius: 24px;
+  
+  /* Border ocean blue tinh tế */
+  border: 2.5px solid rgba(56, 189, 248, 0.4);
+  
+  /* Shadow nhẹ nhàng hơn */
+  box-shadow: 
+    0 10px 40px rgba(14, 165, 233, 0.18),
+    inset 0 2px 4px rgba(255, 255, 255, 0.9),
+    inset 0 0 60px rgba(224, 242, 255, 0.25);
+    
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Background shimmer effect */
+.itemBackground {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(186, 230, 253, 0.15) 0%,
+    transparent 65%
+  );
+  filter: blur(35px);
+  opacity: 0.6;
+  z-index: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* Image container */
+.itemImage {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 
+    0 6px 20px rgba(14, 165, 233, 0.2),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+  z-index: 1;
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Text - Màu ocean blue đậm, dễ đọc */
+.itemName {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0369a1; /* Ocean blue đậm */
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+  text-shadow: 
+    0 2px 10px rgba(56, 189, 248, 0.2),
+    0 1px 3px rgba(255, 255, 255, 0.9);
+  z-index: 2;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Contestant info */
+.itemContestant {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 600;
+  color: #0284c7;
+  background: rgba(224, 242, 255, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 4px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+/* Focus state - Hiệu ứng nhẹ nhàng */
+.focused {
+  transform: scale(1.06);
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow: 
+    0 18px 55px rgba(56, 189, 248, 0.28),
+    0 8px 25px rgba(14, 165, 233, 0.18),
+    inset 0 2px 4px rgba(255, 255, 255, 1),
+    inset 0 0 90px rgba(186, 230, 253, 0.35),
+    0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.focused .itemBackground {
+  opacity: 1;
+}
+
+.focused .itemName {
+  color: #0c4a6e; /* Đậm hơn khi focus */
+  text-shadow: 
+    0 3px 15px rgba(56, 189, 248, 0.35),
+    0 1px 4px rgba(255, 255, 255, 1);
+}
+
+/* Focus decorative elements */
+.focusRing {
+  position: absolute;
+  inset: -5px;
+  border: 2px solid rgba(56, 189, 248, 0.5);
+  border-radius: 28px;
+  animation: ringPulse 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.25;
+  }
+}
+
+.focusGlow {
+  position: absolute;
+  inset: -30px;
+  background: radial-gradient(circle at center, 
+    rgba(56, 189, 248, 0.25) 0%, 
+    transparent 60%
+  );
+  border-radius: 50%;
+  animation: glowPulse 3.2s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(35px);
+  z-index: 0;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.06);
+  }
+}
+
+/* Light rays inside card */
+.focusRays {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg,
+    transparent 30%,
+    rgba(186, 230, 253, 0.15) 50%,
+    transparent 70%
+  );
+  animation: raysMove 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes raysMove {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-20deg);
+  }
+}
+
+/* Inactive/distant items */
+.inactive {
+  opacity: 0.5;
+  filter: blur(1px);
+}
+
+.veryfar {
+  opacity: 0.25;
+  filter: blur(2.5px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .itemContent {
+    padding: 18px 35px;
+    gap: 20px;
+  }
+  
+  .itemName {
+    font-size: 19px;
+  }
+  
+  .itemImage {
+    width: 65px;
+    height: 65px;
+  }
+}

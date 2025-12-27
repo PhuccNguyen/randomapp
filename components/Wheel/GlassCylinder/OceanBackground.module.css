@@ -1,0 +1,117 @@
+/* C:\Users\Nguyen Phuc\Web\tingrandom\components\Wheel\GlassCylinder\OceanBackground.module.css */
+
+.oceanBackground {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    #e0f2fe 0%,
+    #f0f9ff 30%,
+    #ffffff 50%,
+    #f0f9ff 70%,
+    #e0f2fe 100%
+  );
+  overflow: hidden;
+  z-index: 0;
+}
+
+.waveMesh {
+  position: absolute;
+  inset: 0;
+  filter: blur(180px);
+  opacity: 0.4;
+}
+
+.wave {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(14, 165, 233, 0.35) 0%,
+    rgba(56, 189, 248, 0.2) 40%,
+    transparent 70%
+  );
+  animation: waveFloat 28s ease-in-out infinite;
+}
+
+.wave:nth-child(2) {
+  animation-delay: 9s;
+}
+
+.wave:nth-child(3) {
+  animation-delay: 18s;
+}
+
+@keyframes waveFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(35px, -55px) scale(1.08); }
+  66% { transform: translate(-35px, 55px) scale(0.92); }
+}
+
+.bubblesContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bubble {
+  position: absolute;
+  background: radial-gradient(circle at 30% 30%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(14, 165, 233, 0.6) 40%,
+    rgba(14, 165, 233, 0.3) 70%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 0 8px rgba(255, 255, 255, 0.8),
+    0 2px 8px rgba(14, 165, 233, 0.2);
+  animation: bubbleRise 18s linear infinite;
+}
+
+@keyframes bubbleRise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-750px) translateX(40px) scale(0.5); opacity: 0; }
+}
+
+.lightRays {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.ray {
+  position: absolute;
+  top: -60%;
+  left: 50%;
+  width: 250px;
+  height: 220%;
+  margin-left: -125px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(14, 165, 233, 0.08) 40%,
+    rgba(14, 165, 233, 0.04) 60%,
+    transparent 100%
+  );
+  transform-origin: top center;
+  animation: rayRotate 32s linear infinite;
+}
+
+.ray:nth-child(2) {
+  animation-delay: 10.67s;
+}
+
+.ray:nth-child(3) {
+  animation-delay: 21.34s;
+}
+
+@keyframes rayRotate {
+  0% { transform: rotate(0deg); opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { transform: rotate(360deg); opacity: 0.5; }
+}

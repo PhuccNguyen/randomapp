@@ -219,7 +219,11 @@ const CampaignSetup: React.FC = () => {
         {/* Right Column - Preview */}
         <div className={styles.rightColumn}>
           <div className={styles.stickyContainer}>
-            <PreviewSection prizes={formData.prizes} design={formData.design} />
+            <PreviewSection 
+              prizes={formData.prizes} 
+              design={formData.design}
+              mode={formData.mode}
+            />
             
             <button
               onClick={handleSave}

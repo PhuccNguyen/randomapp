@@ -5,7 +5,12 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #0a0e27;
+  background: linear-gradient(180deg, 
+    #e0f2ff 0%,     /* Sky blue */
+    #bae6fd 30%,    /* Light cyan */
+    #7dd3fc 60%,    /* Bright sky blue */
+    #38bdf8 100%    /* Ocean blue */
+  );
   position: relative;
   overflow: hidden;
 }
@@ -27,22 +32,22 @@
   height: 500px;
   border-radius: 50%;
   filter: blur(100px);
-  opacity: 0.3;
+  opacity: 0.5;
   animation: float 20s ease-in-out infinite;
 }
 
 .gradientOrb:nth-child(1) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(147, 197, 253, 0.6) 100%);
   animation-delay: 0s;
 }
 
 .gradientOrb:nth-child(2) {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, rgba(186, 230, 253, 0.7) 0%, rgba(56, 189, 248, 0.5) 100%);
   animation-delay: 5s;
 }
 
 .gradientOrb:nth-child(3) {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.6) 0%, rgba(14, 165, 233, 0.4) 100%);
   animation-delay: 10s;
 }
 
@@ -88,16 +93,16 @@
 .brandHeader {
   position: relative;
   z-index: 10;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  backdrop-filter: blur(30px);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 255, 0.9) 100%);
+  backdrop-filter: blur(40px) saturate(180%);
+  border-bottom: 3px solid rgba(56, 189, 248, 0.5);
   padding: 1.5rem 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   gap: 1rem;
-  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 30px rgba(14, 165, 233, 0.3);
 }
 
 .brandLogos {
@@ -125,27 +130,27 @@
 }
 
 .brandText {
-  color: rgba(255, 255, 255, 0.9);
+  color: #0c4a6e;
   font-size: 1rem;
   text-align: center;
   line-height: 1.6;
   letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .brandText strong {
-  color: #a78bfa;
-  font-weight: 700;
-  text-shadow: 0 0 20px rgba(167, 139, 250, 0.5);
+  color: #0ea5e9;
+  font-weight: 800;
+  text-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
 }
 
-/* ==================== HEADER ==================== */
 .header {
   position: relative;
   z-index: 10;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(224, 242, 255, 0.8) 100%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border-bottom: 2px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.25);
 }
 
 .headerContent {
@@ -164,7 +169,6 @@
   gap: 1.5rem;
   flex: 1;
 }
-
 .logoIcon {
   position: relative;
   width: 64px;
@@ -172,9 +176,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
   border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.5);
 }
 
 .logoIconSvg {
@@ -188,7 +192,7 @@
 .logoGlow {
   position: absolute;
   inset: -10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
   border-radius: 50%;
   filter: blur(20px);
   opacity: 0.6;
@@ -216,9 +220,9 @@
   gap: 0.75rem;
   font-size: 2rem;
   font-weight: 800;
-  color: white;
+  color: #0c4a6e;
   margin: 0;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
   letter-spacing: -0.5px;
 }
 
@@ -242,9 +246,9 @@
 
 .headerSubtitle {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #075985;
   margin: 0.5rem 0 0;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .headerRight {
@@ -256,15 +260,62 @@
 .participantsBadge {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 0.6rem;
+  padding: 0.85rem 1.4rem;
+  background: linear-gradient(135deg, 
+    rgba(56, 189, 248, 0.95) 0%, 
+    rgba(14, 165, 233, 0.9) 100%
+  );
+  backdrop-filter: blur(15px) saturate(180%);
+  border-radius: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
   color: white;
   font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 
+    0 8px 24px rgba(14, 165, 233, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 4px 12px rgba(56, 189, 248, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.participantsBadge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2) 0%, 
+    transparent 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.participantsBadge:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 32px rgba(14, 165, 233, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 16px rgba(56, 189, 248, 0.4);
+}
+
+.participantsBadge:hover::before {
+  opacity: 1;
+}
+
+.participantsBadge svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.participantsBadge span {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 1.1rem;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.3px;
 }
 
 .liveBadge {

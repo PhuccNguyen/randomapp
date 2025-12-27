@@ -8,12 +8,12 @@ import styles from '../CampaignSetup.module.css';
 interface BasicInfoSectionProps {
   name: string;
   description: string;
-  mode: 'wheel' | 'reel' | 'battle' | 'mystery';
+  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode';
   displayMode: 'random' | 'director';
   isPublic: boolean;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onModeChange: (value: 'wheel' | 'reel' | 'battle' | 'mystery') => void;
+  onModeChange: (value: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode') => void;
   onDisplayModeChange: (value: 'random' | 'director') => void;
   onPublicChange: (value: boolean) => void;
 }
@@ -67,32 +67,53 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
 
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.label}>Chế độ hiển thị</label>
+          <label className={styles.label}>
+            Hình dạng vòng quay <span className={styles.required}>*</span>
+          </label>
           <select
             value={mode}
             onChange={(e) => onModeChange(e.target.value as any)}
             className={styles.select}
           >
-            <option value="wheel">Vòng tròn (Wheel)</option>
-            <option value="reel">Trục ngang (Reel)</option>
-            <option value="battle">Đối đầu (Battle)</option>
-            <option value="mystery">Bí mật (Mystery)</option>
+            <optgroup label="🎯 Vòng Quay Cơ Bản">
+              <option value="wheel">🎡 Vòng tròn (Classic Wheel)</option>
+            </optgroup>
+            <optgroup label="✨ Vòng Quay Nâng Cao">
+              <option value="glass-cylinder">🔮 Trụ kính 3D (Glass Cylinder)</option>
+              <option value="infinite-horizon">🌊 Dải ngang panorama (Infinite Horizon)</option>
+              <option value="cyber-decode">💻 Giải mã Matrix (Cyber Decode)</option>
+            </optgroup>
+            <optgroup label="🎮 Đang Phát Triển">
+              <option value="reel" disabled>🎰 Trục ngang (Reel) - Coming Soon</option>
+              <option value="battle" disabled>⚔️ Đối đầu (Battle) - Coming Soon</option>
+              <option value="mystery" disabled>🎁 Bí mật (Mystery) - Coming Soon</option>
+            </optgroup>
           </select>
+          <span className={styles.hint}>
+            💡 Chọn kiểu hiển thị vòng quay cho khán giả
+          </span>
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Kiểu quay</label>
+          <label className={styles.label}>
+            Chế độ random <span className={styles.required}>*</span>
+          </label>
           <select
             value={displayMode}
             onChange={(e) => onDisplayModeChange(e.target.value as any)}
             className={styles.select}
           >
-            <option value="random">Ngẫu nhiên (Random)</option>
-            <option value="director">Đạo diễn (Director)</option>
+            <option value="random">🎲 Ngẫu nhiên (Random)</option>
+            <option value="director">🎬 Đạo diễn (Director Script)</option>
           </select>
           {displayMode === 'director' && (
             <span className={styles.hint}>
-              💡 Chế độ này cho phép kiểm soát kết quả từ Control Panel
+              💡 Kiểm soát kết quả theo kịch bản từ Control Panel
+            </span>
+          )}
+          {displayMode === 'random' && (
+            <span className={styles.hint}>
+              💡 Hệ thống tự động random kết quả công bằng
             </span>
           )}
         </div>
