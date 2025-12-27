@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { getSocketUrl, socketOptions } from '@/lib/socket-client';
 import { ControlState, HistoryItem, DirectorScript, JudgeItem } from '../types';
 
 interface UseSocketReturn {
@@ -32,13 +33,10 @@ export const useSocket = (campaignId: string, items?: JudgeItem[]): UseSocketRet
   });
 
   useEffect(() => {
-    const newSocket = io('http://localhost:3000', {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 10
-    });
+    const socketUrl = getSocketUrl();
+    console.log('🔌 Control Panel connecting to:', socketUrl);
+    
+    const newSocket = io(socketUrl, socketOptions);
 
     newSocket.on('connect', () => {
       console.log('✅ Control: Socket connected:', newSocket.id);

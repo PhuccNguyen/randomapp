@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { getSocketUrl, socketOptions } from '@/lib/socket-client';
 
 export default function TestSocketPage() {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -16,14 +17,10 @@ export default function TestSocketPage() {
   useEffect(() => {
     addLog('🔧 Starting socket connection test...');
 
-    const newSocket = io('http://localhost:3000', {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 10,
-      timeout: 10000
-    });
+    const socketUrl = getSocketUrl();
+    addLog(`🔌 Connecting to: ${socketUrl}`);
+    
+    const newSocket = io(socketUrl, socketOptions);
 
     newSocket.on('connect', () => {
       addLog(`✅ Socket connected! ID: ${newSocket.id}`);

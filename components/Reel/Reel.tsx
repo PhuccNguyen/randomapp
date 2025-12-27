@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
 import { io, Socket } from 'socket.io-client';
+import { getSocketUrl, socketOptions } from '@/lib/socket-client';
 import { Sparkles, Crown, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import styles from './Reel.module.css';
@@ -30,12 +31,10 @@ export default function Reel({ items, campaignId }: ReelProps) {
   
   // Socket.io Connection
   useEffect(() => {
-    const socketInstance = io('http://localhost:3000', {
-      path: '/socket.io/',
-      transports: ['polling', 'websocket'],
-      timeout: 10000,
-      forceNew: true
-    });
+    const socketUrl = getSocketUrl();
+    console.log('🔌 Reel connecting to:', socketUrl);
+    
+    const socketInstance = io(socketUrl, socketOptions);
     
     socketInstance.on('connect', () => {
       console.log('🎰 Reel connected to Socket.io');

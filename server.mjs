@@ -23,13 +23,25 @@ app.prepare().then(() => {
     }
   });
 
-  // Socket.IO setup
+  // Socket.IO setup with production-ready CORS
   const io = new Server(server, {
     cors: {
-      origin: '*',
-      methods: ['GET', 'POST']
+      origin: [
+        'http://localhost:3000',
+        'https://random.tingnect.com',
+        'http://random.tingnect.com',
+        /^https?:\/\/.*\.tingnect\.com$/  // Allow all tingnect.com subdomains
+      ],
+      methods: ['GET', 'POST'],
+      credentials: true
     },
-    path: '/socket.io'
+    path: '/socket.io',
+    transports: ['websocket', 'polling'],
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    upgradeTimeout: 10000,
+    maxHttpBufferSize: 1e6,
+    allowEIO3: true
   });
 
   // Store campaign states

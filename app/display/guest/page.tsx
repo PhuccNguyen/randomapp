@@ -4,6 +4,7 @@
 import React, { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
+import { getSocketUrl, socketOptions } from '@/lib/socket-client';
 import { Tv, Wifi, WifiOff, Loader2, AlertCircle, Trophy, Users, Crown, Play, CheckCircle, Award } from 'lucide-react';
 import Wheel from '@/components/Wheel/Wheel';
 import styles from './page.module.css';
@@ -120,14 +121,10 @@ function GuestDisplayContent() {
     
     if (!socketCampaignId) return;
 
-    const newSocket = io('http://localhost:3000', {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 10,
-      timeout: 10000
-    });
+    const socketUrl = getSocketUrl();
+    console.log('🔌 Display Guest connecting to:', socketUrl);
+    
+    const newSocket = io(socketUrl, socketOptions);
 
     newSocket.on('connect', () => {
       console.log('✅ Socket connected:', newSocket.id);
