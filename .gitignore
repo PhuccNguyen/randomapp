@@ -54,6 +54,4 @@ ssl/
 *.key
 *.crt
 
-# Uploads
-public/uploads/*
-!public/uploads/.gitkeep
+
