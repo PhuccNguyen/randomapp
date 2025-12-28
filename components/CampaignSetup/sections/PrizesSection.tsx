@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Gift, Plus, Trash2, Upload, AlertCircle } from 'lucide-react';
+import { Gift, Plus, Trash2, Upload, AlertCircle, Loader2 } from 'lucide-react';
 import { Prize } from '../types';
 import styles from '../CampaignSetup.module.css';
 
@@ -41,12 +41,68 @@ const PrizesSection: React.FC<PrizesSectionProps> = ({
     onPrizesChange(prizes.filter(p => p.id !== id));
   };
 
-  const handleImageUpload = (id: string, file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      updatePrize(id, { image: e.target?.result as string });
-    };
-    reader.readAsDataURL(file);
+  const [uploadingIds, setUploadingIds] = useState<Set<string>>(new Set());
+
+  const handleImageUpload = async (id: string, file: File) => {
+    setUploadingIds(prev => new Set(prev).add(id));
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Vui lòng đăng nhập để upload ảnh');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('itemId', id);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
+
+      const { url } = await response.json();
+      console.log('✅ Image uploaded:', url);
+      
+      updatePrize(id, { image: url });
+    } catch (error: any) {
+      console.error('❌ Upload error:', error);
+      alert(error.message || 'Không thể upload ảnh. Vui lòng thử lại.');
+    } finally {
+      setUploadingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const handleImageDelete = async (id: string, imageUrl: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token && imageUrl.startsWith('/uploads/')) {
+        await fetch('/api/upload', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ url: imageUrl })
+        });
+      }
+      updatePrize(id, { image: '' });
+    } catch (error) {
+      console.error('❌ Delete error:', error);
+    }
   };
 
   const filteredPrizes = prizes.filter(p => 
@@ -123,20 +179,43 @@ const PrizesSection: React.FC<PrizesSectionProps> = ({
 
               {/* Image Upload */}
               <label className={styles.imageUploadLabel}>
-                <Upload size={14} />
-                <span>{prize.image ? 'Đổi ảnh' : 'Thêm ảnh'}</span>
+                {uploadingIds.has(prize.id) ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinner} />
+                    <span>Đang upload...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={14} />
+                    <span>{prize.image ? 'Đổi ảnh' : 'Thêm ảnh'}</span>
+                  </>
+                )}
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => e.target.files && handleImageUpload(prize.id, e.target.files[0])}
                   className={styles.imageUploadInput}
+                  disabled={uploadingIds.has(prize.id)}
                 />
               </label>
 
               {prize.image && (
-                <div className={styles.prizeImagePreview}>
-                  <img src={prize.image} alt={prize.name} />
-                </div>
+                <>
+                  <div className={styles.prizeImagePreview}>
+                    <img src={prize.image} alt={prize.name} />
+                    <button
+                      type="button"
+                      onClick={() => handleImageDelete(prize.id, prize.image!)}
+                      className={styles.deleteImageButton}
+                      title="Xóa ảnh"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <div className={styles.imageFileName}>
+                    📎 {prize.image.split('/').pop()}
+                  </div>
+                </>
               )}
 
               {/* Question Toggle */}

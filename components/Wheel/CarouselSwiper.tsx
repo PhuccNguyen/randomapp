@@ -3,10 +3,6 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styles from './CarouselSwiper.module.css';
-import { SwipeBackground } from './CarouselSwiper/SwipeBackground';
-import { CarouselFrame } from './CarouselSwiper/CarouselFrame';
-import { SelectionIndicator } from './CarouselSwiper/SelectionIndicator';
-import { CarouselCard } from './CarouselSwiper/CarouselCard';
 
 interface JudgeItem {
   id: string;
@@ -36,28 +32,14 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [offsetX, setOffsetX] = useState(0);
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; delay: number; size: number }>>([]);
+  const [rotation, setRotation] = useState(0);
   const animationRef = useRef<number | null>(null);
   const velocityRef = useRef(0);
   const stopRequestedRef = useRef(false);
   const targetIndexRef = useRef<number | null>(null);
   const decelerationPhaseRef = useRef(false);
 
-  const CARD_WIDTH = 420;
-  const CARD_GAP = 60;
-  const TOTAL_WIDTH = CARD_WIDTH + CARD_GAP;
-
-  useEffect(() => {
-    const particleArray = Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      delay: Math.random() * 12,
-      size: 1 + Math.random() * 3
-    }));
-    setParticles(particleArray);
-  }, []);
+  const ANGLE_PER_ITEM = 360 / (items.length || 1);
 
   useEffect(() => {
     if (isSpinning && !spinning) {
@@ -90,7 +72,7 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
     setSpinning(true);
     decelerationPhaseRef.current = false;
     
-    velocityRef.current = 12;
+    velocityRef.current = 8;
     let lastTime = performance.now();
     
     const animate = (currentTime: number) => {
@@ -98,16 +80,16 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
       lastTime = currentTime;
       
       if (!decelerationPhaseRef.current) {
-        if (velocityRef.current < 60) {
-          velocityRef.current += 1.2 * deltaTime;
+        if (velocityRef.current < 45) {
+          velocityRef.current += 1.5 * deltaTime;
         }
         
-        setOffsetX(prev => {
-          const newOffset = prev + velocityRef.current * deltaTime;
-          const normalizedOffset = Math.abs(newOffset) % (TOTAL_WIDTH * items.length);
-          const index = Math.floor(normalizedOffset / TOTAL_WIDTH) % items.length;
+        setRotation(prev => {
+          const newRotation = prev + velocityRef.current * deltaTime;
+          const normalizedRotation = ((newRotation % 360) + 360) % 360;
+          const index = Math.floor((360 - normalizedRotation) / ANGLE_PER_ITEM) % items.length;
           setCurrentIndex(index);
-          return newOffset;
+          return newRotation;
         });
         
         animationRef.current = requestAnimationFrame(animate);
@@ -115,7 +97,7 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
     };
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [items.length]);
+  }, [items.length, ANGLE_PER_ITEM]);
 
   const calculateStopPosition = useCallback((resolvedTargetId: string) => {
     console.log('🎯 CarouselSwiper: Calculating stop position for:', resolvedTargetId);
@@ -130,27 +112,26 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
     const targetItem = items[targetIndex];
     console.log('🎯 CarouselSwiper: Target item:', targetItem?.name, 'at index:', targetIndex);
 
-    const naturalOffset = (Math.random() - 0.5) * TOTAL_WIDTH * 0.4;
-    const extraCycles = 8 + Math.floor(Math.random() * 5);
+    const targetAngle = targetIndex * ANGLE_PER_ITEM;
+    const naturalOffset = (Math.random() - 0.5) * ANGLE_PER_ITEM * 0.3;
+    const extraRotations = 5 + Math.floor(Math.random() * 3);
     
-    const currentCycles = Math.floor(Math.abs(offsetX) / (TOTAL_WIDTH * items.length));
-    const targetOffset = (currentCycles + extraCycles) * (TOTAL_WIDTH * items.length) + 
-                        (targetIndex * TOTAL_WIDTH) + naturalOffset;
+    const targetRotation = rotation + (extraRotations * 360) + (360 - (rotation % 360)) + targetAngle + naturalOffset;
     
     targetIndexRef.current = targetIndex;
     
     console.log('🎯 CarouselSwiper: Stop calculation:', {
       targetIndex,
       targetName: targetItem?.name,
-      extraCycles,
+      extraRotations,
       naturalOffset: naturalOffset.toFixed(2),
-      finalOffset: targetOffset.toFixed(2),
-      currentOffset: offsetX.toFixed(2)
+      finalRotation: targetRotation.toFixed(2),
+      currentRotation: rotation.toFixed(2)
     });
 
     decelerationPhaseRef.current = true;
-    decelerateToTarget(targetOffset);
-  }, [items, offsetX]);
+    decelerateToTarget(targetRotation);
+  }, [items, rotation, ANGLE_PER_ITEM]);
 
   const finalizeStop = useCallback(() => {
     setSpinning(false);
@@ -167,10 +148,10 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
     }
   }, [items, targetId, onSpinComplete]);
 
-  const decelerateToTarget = useCallback((targetOffset: number) => {
-    const startOffset = offsetX;
+  const decelerateToTarget = useCallback((targetRotation: number) => {
+    const startRotation = rotation;
     const startTime = performance.now();
-    const decelerationDuration = 5000 + Math.random() * 2000;
+    const decelerationDuration = 4500 + Math.random() * 1500;
     
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
@@ -178,18 +159,18 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
       
       const easeOutQuint = 1 - Math.pow(1 - progress, 5);
       
-      let currentOffset = startOffset + (targetOffset - startOffset) * easeOutQuint;
+      let currentRotation = startRotation + (targetRotation - startRotation) * easeOutQuint;
       
-      if (progress > 0.9) {
-        const wobbleIntensity = (1 - progress) * 5;
-        const wobble = Math.sin(progress * 40) * wobbleIntensity;
-        currentOffset += wobble;
+      if (progress > 0.88) {
+        const wobbleIntensity = (1 - progress) * 8;
+        const wobble = Math.sin(progress * 35) * wobbleIntensity;
+        currentRotation += wobble;
       }
       
-      setOffsetX(currentOffset);
+      setRotation(currentRotation);
       
-      const normalizedOffset = Math.abs(currentOffset) % (TOTAL_WIDTH * items.length);
-      const index = Math.floor(normalizedOffset / TOTAL_WIDTH) % items.length;
+      const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+      const index = Math.floor((360 - normalizedRotation) / ANGLE_PER_ITEM) % items.length;
       setCurrentIndex(index);
       
       if (progress < 1) {
@@ -200,7 +181,7 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
     };
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [offsetX, items.length, finalizeStop]);
+  }, [rotation, items.length, ANGLE_PER_ITEM, finalizeStop]);
 
   useEffect(() => {
     return () => {
@@ -211,53 +192,70 @@ const CarouselSwiper: React.FC<CarouselSwiperProps> = ({
   }, []);
 
   const renderCards = () => {
-    const cards = [];
-    const visibleRange = 7;
-    
-    for (let i = -visibleRange; i <= visibleRange; i++) {
-      const index = (currentIndex + i + items.length) % items.length;
-      const item = items[index];
+    return items.map((item, index) => {
+      const angle = (index * ANGLE_PER_ITEM - rotation) * (Math.PI / 180);
+      const radius = 820;
       
-      const cardOffset = i * TOTAL_WIDTH - (offsetX % TOTAL_WIDTH);
-      const absOffset = Math.abs(cardOffset);
+      const x = Math.sin(angle) * radius;
+      const z = Math.cos(angle) * radius;
       
-      const scale = Math.max(0.65, 1 - absOffset / 1200);
-      const opacity = Math.max(0.2, 1 - absOffset / 800);
-      const rotateY = cardOffset / 25;
-      const translateZ = Math.cos((cardOffset / 600) * Math.PI) * 300;
+      const distanceFromFront = Math.abs(angle % (2 * Math.PI));
+      const isFront = distanceFromFront < Math.PI / 8 || distanceFromFront > (15 * Math.PI) / 8;
       
-      const isCentered = absOffset < CARD_WIDTH / 2;
+      const scale = isFront ? 1 : 0.68 + (0.32 * Math.max(0, Math.cos(angle)));
+      const opacity = 0.35 + (0.65 * Math.max(0, Math.cos(angle)));
       
-      cards.push(
-        <CarouselCard
-          key={`${item.id}-${i}`}
-          item={item}
-          index={index}
-          totalItems={items.length}
-          isCentered={isCentered}
-          isSpinning={spinning}
-          transform={`translateX(${cardOffset}px) translateZ(${translateZ}px) scale(${scale}) rotateY(${rotateY}deg)`}
-          opacity={opacity}
-          zIndex={isCentered ? 100 : Math.floor(100 - absOffset / 10)}
-        />
+      const rotateY = (index * ANGLE_PER_ITEM - rotation);
+      const randomFloat = Math.sin(rotation * 0.04 + index * 2.5) * 12;
+      const randomTilt = Math.cos(rotation * 0.025 + index * 3) * 6;
+      
+      return (
+        <div
+          key={item.id}
+          className={`${styles.floatingCard} ${isFront ? styles.frontCard : ''}`}
+          style={{
+            transform: `
+              translate3d(${x}px, ${randomFloat}px, ${z}px) 
+              rotateY(${rotateY}deg) 
+              rotateX(${randomTilt}deg)
+              scale(${scale})
+            `,
+            opacity,
+            filter: isFront ? 'none' : `blur(${(1 - Math.cos(angle)) * 1.5}px)`,
+            zIndex: isFront ? 300 : Math.floor(100 + z)
+          }}
+        >
+          <div className={styles.cardInner}>
+            <div 
+              className={styles.cardGlow}
+              style={{ 
+                background: item.color || '#3b82f6',
+                boxShadow: isFront ? `0 0 60px ${item.color || '#3b82f6'}` : 'none'
+              }}
+            />
+            <div className={styles.cardContent}>
+              {item.imageUrl && (
+                <div className={styles.cardImage}>
+                  <img src={item.imageUrl} alt={item.name} />
+                </div>
+              )}
+              <div className={styles.cardText}>
+                <h3>{item.name}</h3>
+                {item.contestant && <p className={styles.contestant}>{item.contestant}</p>}
+                {item.question && <p className={styles.question}>{item.question}</p>}
+              </div>
+            </div>
+          </div>
+        </div>
       );
-    }
-    
-    return cards;
+    });
   };
 
   return (
     <div className={styles.container}>
-      <SwipeBackground particles={particles} />
-      <CarouselFrame />
-      
       <div className={styles.carouselStage}>
-        <div className={styles.carouselTrack}>
-          {renderCards()}
-        </div>
+        {renderCards()}
       </div>
-      
-      <SelectionIndicator />
     </div>
   );
 };

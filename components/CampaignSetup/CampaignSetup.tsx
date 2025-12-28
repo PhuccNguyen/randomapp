@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Save, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import BasicInfoSection from './sections/BasicInfoSection';
 import WheelDesignSection from './sections/WheelDesignSection';
@@ -14,7 +14,10 @@ import styles from './CampaignSetup.module.css';
 
 const CampaignSetup: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const campaignId = searchParams.get('id'); // Get campaign ID from URL
   const [loading, setLoading] = useState(false);
+  const [fetchingData, setFetchingData] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -28,25 +31,88 @@ const CampaignSetup: React.FC = () => {
     design: DEFAULT_WHEEL_DESIGN
   });
 
-  // Load draft from localStorage
+  // Fetch existing campaign data if editing
   useEffect(() => {
-    const draft = localStorage.getItem('campaign_draft');
-    if (draft) {
-      try {
-        setFormData(JSON.parse(draft));
-      } catch (e) {
-        console.error('Failed to load draft:', e);
+    if (campaignId) {
+      const fetchCampaign = async () => {
+        setFetchingData(true);
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            setError('Vui lòng đăng nhập để chỉnh sửa chiến dịch');
+            return;
+          }
+
+          const response = await fetch(`/api/campaigns/${campaignId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Không thể tải dữ liệu chiến dịch');
+          }
+
+          const { campaign } = await response.json();
+          console.log('📥 Loaded campaign for editing:', campaign);
+
+          // Transform API data to form data
+          setFormData({
+            name: campaign.name || '',
+            description: campaign.description || '',
+            mode: campaign.mode || 'wheel',
+            displayMode: campaign.displayMode || 'random',
+            isPublic: campaign.isPublic || false,
+            prizes: campaign.items?.map((item: any) => ({
+              id: item.id || item._id,
+              name: item.name,
+              hasQuestion: item.hasQuestion || false,
+              image: item.imageUrl || '',
+              color: item.color || '#4ECDC4'
+            })) || DEFAULT_PRIZES,
+            design: {
+              spinDuration: campaign.settings?.spinDuration ? campaign.settings.spinDuration / 1000 : 5,
+              soundEnabled: campaign.settings?.soundEnabled ?? true,
+              confettiEnabled: campaign.settings?.confettiEnabled ?? true,
+              backgroundColor: campaign.settings?.backgroundColor || '#1a1a2e',
+              textColor: campaign.settings?.textColor || '#ffffff'
+            }
+          });
+        } catch (err: any) {
+          console.error('❌ Error fetching campaign:', err);
+          setError(err.message || 'Không thể tải dữ liệu chiến dịch');
+        } finally {
+          setFetchingData(false);
+        }
+      };
+
+      fetchCampaign();
+    }
+  }, [campaignId]);
+
+  // Load draft from localStorage (only for new campaigns)
+  useEffect(() => {
+    if (!campaignId) {
+      const draft = localStorage.getItem('campaign_draft');
+      if (draft) {
+        try {
+          setFormData(JSON.parse(draft));
+        } catch (e) {
+          console.error('Failed to load draft:', e);
+        }
       }
     }
-  }, []);
+  }, [campaignId]);
 
-  // Auto-save draft
+  // Auto-save draft (only for new campaigns)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      localStorage.setItem('campaign_draft', JSON.stringify(formData));
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [formData]);
+    if (!campaignId) {
+      const timer = setTimeout(() => {
+        localStorage.setItem('campaign_draft', JSON.stringify(formData));
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [formData, campaignId]);
 
   const handleSave = async () => {
     setError(null);
@@ -113,8 +179,14 @@ const CampaignSetup: React.FC = () => {
 
       console.log('📤 Sending payload:', payload);
 
-      const response = await fetch('/api/campaigns', {
-        method: 'POST',
+      // Use PUT for edit, POST for create
+      const url = campaignId ? `/api/campaigns/${campaignId}` : '/api/campaigns';
+      const method = campaignId ? 'PUT' : 'POST';
+      
+      console.log(`${method} ${url}`);
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -143,13 +215,17 @@ const CampaignSetup: React.FC = () => {
         throw new Error(errorMsg);
       }
 
-      console.log('✅ Campaign created successfully:', data);
+      console.log(`✅ Campaign ${campaignId ? 'updated' : 'created'} successfully:`, data);
       setSuccess(true);
-      localStorage.removeItem('campaign_draft'); // Clear draft
+      
+      if (!campaignId) {
+        localStorage.removeItem('campaign_draft'); // Clear draft only for new campaigns
+      }
 
       // Redirect to control panel after 2s
+      const targetId = campaignId || data.id || data.campaign?._id;
       setTimeout(() => {
-        router.push(`/control?id=${data.id}`);
+        router.push(`/control?id=${targetId}`);
       }, 2000);
 
     } catch (err: any) {
@@ -164,12 +240,25 @@ const CampaignSetup: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Tạo Chiến Dịch Sự Kiện Lớn</h1>
+          <h1 className={styles.title}>
+            {campaignId ? 'Chỉnh Sửa Chiến Dịch' : 'Tạo Chiến Dịch Sự Kiện Lớn'}
+          </h1>
           <p className={styles.subtitle}>
-            Thiết lập vòng quay chuyên nghiệp cho Hoa Hậu, Gameshow, Sự kiện truyền hình
+            {campaignId 
+              ? 'Cập nhật thông tin chiến dịch, thêm/xóa ảnh, thay đổi vòng quay'
+              : 'Thiết lập vòng quay chuyên nghiệp cho Hoa Hậu, Gameshow, Sự kiện truyền hình'
+            }
           </p>
         </div>
       </div>
+
+      {/* Loading State */}
+      {fetchingData && (
+        <div className={styles.alert} style={{ backgroundColor: '#e7f3ff', borderColor: '#b3d9ff' }}>
+          <Loader2 size={18} className={styles.spinner} />
+          <span>Đang tải dữ liệu chiến dịch...</span>
+        </div>
+      )}
 
       {/* Error/Success Messages */}
       {error && (
@@ -182,7 +271,7 @@ const CampaignSetup: React.FC = () => {
       {success && (
         <div className={styles.alert} style={{ backgroundColor: '#efe', borderColor: '#cfc' }}>
           <CheckCircle2 size={18} />
-          <span>Lưu thành công! Đang chuyển đến Control Panel...</span>
+          <span>{campaignId ? 'Cập nhật thành công!' : 'Lưu thành công!'} Đang chuyển đến Control Panel...</span>
         </div>
       )}
 
@@ -227,24 +316,27 @@ const CampaignSetup: React.FC = () => {
             
             <button
               onClick={handleSave}
-              disabled={loading}
+              disabled={loading || fetchingData}
               className={styles.saveButton}
             >
               {loading ? (
                 <>
                   <Loader2 size={18} className={styles.spinner} />
-                  <span>Đang lưu...</span>
+                  <span>{campaignId ? 'Đang cập nhật...' : 'Đang lưu...'}</span>
                 </>
               ) : (
                 <>
                   <Save size={18} />
-                  <span>Lưu & Tiếp tục</span>
+                  <span>{campaignId ? 'Cập nhật' : 'Lưu & Tiếp tục'}</span>
                 </>
               )}
             </button>
 
             <p className={styles.hint}>
-              💡 Sau khi lưu, bạn sẽ được chuyển đến <strong>Control Panel</strong> để thiết lập kịch bản director mode
+              💡 {campaignId 
+                ? 'Sau khi cập nhật, bạn sẽ được chuyển đến Control Panel'
+                : 'Sau khi lưu, bạn sẽ được chuyển đến Control Panel để thiết lập kịch bản director mode'
+              }
             </p>
           </div>
         </div>

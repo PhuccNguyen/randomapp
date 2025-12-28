@@ -8,12 +8,12 @@ import styles from '../CampaignSetup.module.css';
 interface BasicInfoSectionProps {
   name: string;
   description: string;
-  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode';
+  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode' | 'carousel-swiper';
   displayMode: 'random' | 'director';
   isPublic: boolean;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onModeChange: (value: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode') => void;
+  onModeChange: (value: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode' | 'carousel-swiper') => void;
   onDisplayModeChange: (value: 'random' | 'director') => void;
   onPublicChange: (value: boolean) => void;
 }
@@ -82,6 +82,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
               <option value="glass-cylinder">🔮 Trụ kính 3D (Glass Cylinder)</option>
               <option value="infinite-horizon">🌊 Dải ngang panorama (Infinite Horizon)</option>
               <option value="cyber-decode">💻 Giải mã Matrix (Cyber Decode)</option>
+              <option value="carousel-swiper">🎠 Băng chuyền xoay (Carousel Swiper)</option>
             </optgroup>
             <optgroup label="🎮 Đang Phát Triển">
               <option value="reel" disabled>🎰 Trục ngang (Reel) - Coming Soon</option>

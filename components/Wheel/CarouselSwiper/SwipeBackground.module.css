@@ -1,0 +1,104 @@
+/* C:\Users\Nguyen Phuc\Web\tingrandom\components\Wheel\CarouselSwiper\SwipeBackground.module.css */
+
+.swipeBackground {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    #0f172a 0%,
+    #1e293b 30%,
+    #334155 50%,
+    #1e293b 70%,
+    #0f172a 100%
+  );
+  overflow: hidden;
+  z-index: 0;
+}
+
+.gradientMesh {
+  position: absolute;
+  inset: 0;
+  filter: blur(200px);
+  opacity: 0.5;
+}
+
+.meshOrb {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(59, 130, 246, 0.4) 0%,
+    rgba(147, 51, 234, 0.3) 40%,
+    transparent 70%
+  );
+  animation: meshFloat 30s ease-in-out infinite;
+}
+
+.meshOrb:nth-child(2) {
+  background: radial-gradient(circle,
+    rgba(236, 72, 153, 0.35) 0%,
+    rgba(251, 146, 60, 0.25) 40%,
+    transparent 70%
+  );
+  animation-delay: 10s;
+}
+
+.meshOrb:nth-child(3) {
+  background: radial-gradient(circle,
+    rgba(168, 85, 247, 0.3) 0%,
+    rgba(59, 130, 246, 0.2) 40%,
+    transparent 70%
+  );
+  animation-delay: 20s;
+}
+
+@keyframes meshFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(50px, -70px) scale(1.1); }
+  66% { transform: translate(-50px, 70px) scale(0.9); }
+}
+
+.particlesContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(59, 130, 246, 0.6) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  animation: particleDrift 20s linear infinite;
+}
+
+@keyframes particleDrift {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.4; }
+  100% { transform: translate(60px, -800px); opacity: 0; }
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.02) 0px,
+    transparent 2px,
+    transparent 4px,
+    rgba(255, 255, 255, 0.02) 6px
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: scanlineMove 10s linear infinite;
+}
+
+@keyframes scanlineMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(6px); }
+}

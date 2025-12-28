@@ -23,7 +23,7 @@ export interface WheelDesign {
 export interface CampaignFormData {
   name: string;
   description: string;
-  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode';
+  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode' | 'carousel-swiper';
   displayMode: 'random' | 'director';
   isPublic: boolean;
   prizes: Prize[];

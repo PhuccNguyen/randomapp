@@ -16,6 +16,7 @@ const Wheel = dynamic(() => import('@/components/Wheel/Wheel'), { ssr: false });
 const GlassCylinder = dynamic(() => import('@/components/Wheel/GlassCylinder'), { ssr: false });
 const InfiniteHorizon = dynamic(() => import('@/components/Wheel/InfiniteHorizon'), { ssr: false });
 const CyberDecode = dynamic(() => import('@/components/Wheel/CyberDecode'), { ssr: false });
+const CarouselSwiper = dynamic(() => import('@/components/Wheel/CarouselSwiper'), { ssr: false });
 
 interface WheelItem {
   id: string;
@@ -32,8 +33,7 @@ interface Campaign {
   name: string;
   description?: string;
   items: WheelItem[];
-    mode?: 'wheel' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode'; // ✅ Thêm field này
-
+  mode?: 'wheel' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode' | 'carousel-swiper';
   settings: {
     spinDuration?: number;
     spinSound?: boolean;
@@ -220,12 +220,12 @@ function GuestDisplayContent() {
 
     setSocket(newSocket);
 
- return () => {
+    return () => {
       newSocket.disconnect();
     };
   }, [campaignId, campaign?._id]);
 
- // Handle spin complete
+  // Handle spin complete
   const handleSpinComplete = useCallback((result: any) => {
     console.log('🎉 Guest: Spin complete - Result:', result);
     console.log('🎉 Guest: ServerContestant:', serverContestant);
@@ -242,7 +242,7 @@ function GuestDisplayContent() {
       imageUrl: result.imageUrl
     };
     
-console.log('🎉 Guest: Final winner object:', newWinner);
+    console.log('🎉 Guest: Final winner object:', newWinner);
     
     setWinner(newWinner);
     setHistory(prev => [newWinner, ...prev].slice(0, 10));
@@ -451,10 +451,22 @@ console.log('🎉 Guest: Final winner object:', newWinner);
         onSpinComplete={handleSpinComplete}
       />
     )}
+
+    {campaign.mode === 'carousel-swiper' && (
+      <CarouselSwiper
+        items={campaign.items}
+        campaignId={campaign._id}
+        isSpinning={spinning}
+        isStopping={stopping}
+        targetId={targetId || undefined}
+        onSpinComplete={handleSpinComplete}
+      />
+    )}
     
     {(!campaign.mode || campaign.mode === 'wheel') && (
       <Wheel
         items={campaign.items}
+        campaignId={campaign._id}
         isSpinning={spinning}
         isStopping={stopping}
         targetId={targetId || undefined}

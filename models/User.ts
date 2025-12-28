@@ -55,7 +55,6 @@ const UserSchema = new Schema<IUser>({
   email: {
     type: String,
     required: [true, 'Email is required'],
-    unique: true,
     lowercase: true,
     trim: true,
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']
@@ -63,7 +62,6 @@ const UserSchema = new Schema<IUser>({
   username: {
     type: String,
     required: [true, 'Username is required'],
-    unique: true,
     trim: true,
     minlength: [3, 'Username must be at least 3 characters'],
     maxlength: [30, 'Username cannot exceed 30 characters']
@@ -142,8 +140,8 @@ const UserSchema = new Schema<IUser>({
 });
 
 // ============== 3. INDEXES ==============
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ username: 1 }, { unique: true });
 UserSchema.index({ tier: 1, subscriptionStatus: 1 });
 
 // ============== 4. MIDDLEWARE (HOOKS) ==============
