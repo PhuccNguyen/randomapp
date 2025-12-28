@@ -182,7 +182,7 @@ function ControlContent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 size={48} className="text-blue-600 animate-spin" />
-        <p className="text-gray-500 font-medium">Đang đồng bộ dữ liệu...</p>
+        <p className="text-gray-500 font-medium">Đang đồng bộ dữ liệu....</p>
       </div>
     );
   }
@@ -257,7 +257,7 @@ function ControlContent() {
               {/* Stats */}
               <div className="text-sm text-gray-500 mb-6">
                 <p>Số lượng: <strong>{camp.items?.length || 0}</strong> phần tử</p>
-                <p>Kịch bản: <strong>{camp.director_script?.length || 0}</strong> bước</p>
+                <p>Kịch bản: <strong>{camp.director_script?.length || 0}</strong> bước </p>
               </div>
 
               {/* Actions */}
