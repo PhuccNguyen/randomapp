@@ -71,11 +71,13 @@ const CampaignSetup: React.FC = () => {
               color: item.color || '#4ECDC4'
             })) || DEFAULT_PRIZES,
             design: {
+              shape: 'circle',
               spinDuration: campaign.settings?.spinDuration ? campaign.settings.spinDuration / 1000 : 5,
               soundEnabled: campaign.settings?.soundEnabled ?? true,
               confettiEnabled: campaign.settings?.confettiEnabled ?? true,
               backgroundColor: campaign.settings?.backgroundColor || '#1a1a2e',
-              textColor: campaign.settings?.textColor || '#ffffff'
+              textColor: campaign.settings?.textColor || '#ffffff',
+              borderColor: campaign.settings?.borderColor || '#D4AF37'
             }
           });
         } catch (err: any) {

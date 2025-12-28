@@ -1,4 +1,7 @@
 // components/ControlPanel/sections/ModeSelector.tsx
+import React from 'react';
+import styles from '../ControlPanel.module.css';
+
 interface ModeSelectorProps {
   currentMode: string;
   onModeChange: (mode: string) => void;

@@ -715,6 +715,7 @@
 }
 
 .statusSpinning,
+.statusStopping,
 .statusIdle {
   display: flex;
   flex-direction: column;
@@ -723,12 +724,34 @@
 }
 
 .statusSpinning p,
+.statusStopping p,
 .statusIdle p {
   font-size: 1.5rem;
   font-weight: 700;
   color: white;
   margin: 0;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.statusStopping {
+  animation: fadeIn 0.3s ease;
+}
+
+.pulseIcon {
+  animation: pulse 1.5s ease-in-out infinite;
+  color: #4ade80;
+  filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.6));
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.8;
+  }
 }
 
 .statusDots {

@@ -490,13 +490,19 @@ function GuestDisplayContent() {
                 <div className={styles.statusDots}>
                   <span></span><span></span><span></span>
                 </div>
-                <p>Đang quay số...</p>
+                <p>Vòng quay đang lựa chọn giám khảo...</p>
               </div>
             )}
-            {!spinning && !showWinner && (
+            {stopping && (
+              <div className={styles.statusStopping}>
+                <CheckCircle size={28} className={styles.pulseIcon} />
+                <p>Giám khảo đang được xác định...</p>
+              </div>
+            )}
+            {!spinning && !stopping && !showWinner && (
               <div className={styles.statusIdle}>
-                <Trophy size={24} />
-                <p>Chờ ban tổ chức bắt đầu</p>
+                <Trophy size={28} />
+                <p>Sẵn sàng cho lượt quay tiếp theo</p>
               </div>
             )}
           </div>

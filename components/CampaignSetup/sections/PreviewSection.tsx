@@ -13,11 +13,12 @@ const Wheel = dynamic(() => import('@/components/Wheel/Wheel'), { ssr: false });
 const GlassCylinder = dynamic(() => import('@/components/Wheel/GlassCylinder'), { ssr: false });
 const InfiniteHorizon = dynamic(() => import('@/components/Wheel/InfiniteHorizon'), { ssr: false });
 const CyberDecode = dynamic(() => import('@/components/Wheel/CyberDecode'), { ssr: false });
+const CarouselSwiper = dynamic(() => import('@/components/Wheel/CarouselSwiper'), { ssr: false });
 
 interface PreviewSectionProps {
   prizes: Prize[];
   design: WheelDesign;
-  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode';
+  mode: 'wheel' | 'reel' | 'battle' | 'mystery' | 'glass-cylinder' | 'infinite-horizon' | 'cyber-decode' | 'carousel-swiper';
 }
 
 const PreviewSection: React.FC<PreviewSectionProps> = ({ prizes, design, mode }) => {
@@ -104,6 +105,16 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({ prizes, design, mode })
           {mode === 'cyber-decode' && items.length > 0 && (
             <div style={{ transform: 'scale(0.7)', width: '100%' }}>
               <CyberDecode
+                items={items}
+                isSpinning={false}
+                isStopping={false}
+              />
+            </div>
+          )}
+          
+          {mode === 'carousel-swiper' && items.length > 0 && (
+            <div style={{ transform: 'scale(0.7)', width: '100%' }}>
+              <CarouselSwiper
                 items={items}
                 isSpinning={false}
                 isStopping={false}
