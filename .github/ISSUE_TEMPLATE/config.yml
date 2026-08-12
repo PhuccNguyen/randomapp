@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Cau hoi va thao luan
+    url: https://github.com/PhuccNguyen/randomapp/discussions
+    about: Dat cau hoi hoac thao luan y tuong tai day
+  - name: Bao cao bao mat
+    url: https://github.com/PhuccNguyen/randomapp/security/policy
+    about: Vui long khong bao lo hong bao mat qua public issue
